@@ -592,12 +592,15 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../Api_services/api_services.dart';
 import '../core/app_color_constants.dart';
-import '../core/app_constants.dart';
+import '../core/services/auth_services.dart';
+import '../screens/drawer_pages.dart';
 import '../screens/login_page.dart';
 
 class AppDrawer extends StatefulWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  const AppDrawer({super.key});
 
   @override
   State<AppDrawer> createState() => _AppDrawerState();
@@ -606,6 +609,43 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   // ✅ Move the state variable here (inside the State class)
   bool _isProfileExpanded = false;
+  final ApiServices _apiServices = ApiServices();
+  String _headerEmail = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDrawerEmail();
+  }
+
+  Future<void> _loadDrawerEmail() async {
+    final savedEmail = await AuthService.getSavedEmail();
+    if (savedEmail != null && savedEmail.isNotEmpty && mounted) {
+      setState(() {
+        _headerEmail = savedEmail;
+      });
+    }
+
+    try {
+      final token = await AuthService.getToken();
+      if (token == null || token.isEmpty) return;
+      final profile = await _apiServices.getProfile(token: token);
+      final user = profile['user'];
+      String? email;
+      if (user is Map) {
+        email = user['email']?.toString();
+      }
+      if (email != null && email.isNotEmpty) {
+        await AuthService.saveEmail(email);
+        if (!mounted) return;
+        setState(() {
+          _headerEmail = email!;
+        });
+      }
+    } catch (_) {
+      // Keep cached email on API failure.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -622,10 +662,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.notifications_none,
+            icon: FontAwesomeIcons.solidBell,
             title: "BeatFlirt Notification",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const BeatFlirtNotificationPage());
             },
           ),
 
@@ -633,10 +673,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.star_purple500_sharp,
+            icon: FontAwesomeIcons.crown,
             title: "Celebrity Panel",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const CelebrityPanelPage());
             },
           ),
 
@@ -644,10 +684,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.insert_emoticon_sharp,
+            icon: FontAwesomeIcons.userPlus,
             title: "New Members",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const NewMembersPage());
             },
           ),
 
@@ -655,10 +695,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.event_available_outlined,
+            icon: FontAwesomeIcons.champagneGlasses,
             title: "Events & Party",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const EventsPartyPage());
             },
           ),
 
@@ -666,10 +706,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.private_connectivity_rounded,
+            icon: FontAwesomeIcons.bolt,
             title: "Speed Date",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const SpeedDatePage());
             },
           ),
 
@@ -677,10 +717,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.mark_chat_read_outlined,
+            icon: FontAwesomeIcons.comments,
             title: "Live Chatroom",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const LiveChatroomPage());
             },
           ),
 
@@ -688,10 +728,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.privacy_tip_outlined,
+            icon: FontAwesomeIcons.userShield,
             title: "Privacy",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const PrivacyPage());
             },
           ),
 
@@ -699,10 +739,10 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.upgrade,
+            icon: FontAwesomeIcons.rocket,
             title: "Upgrade",
             onTap: () {
-              Navigator.pop(context);
+              _openDrawerPage(context, const UpgradePage());
             },
           ),
 
@@ -710,7 +750,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
           _buildDrawerItem(
             context,
-            icon: Icons.logout,
+            icon: FontAwesomeIcons.rightFromBracket,
             title: "Logout",
             onTap: () {
               _logout(context);
@@ -724,7 +764,7 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget _buildDrawerHeader(BuildContext context) {
     return DrawerHeader(
       padding: EdgeInsets.zero,
-      decoration: BoxDecoration(color: Colors.purple.withOpacity(0.5)),
+      decoration: BoxDecoration(color: Colors.purple.withValues(alpha: 0.5)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -732,7 +772,7 @@ class _AppDrawerState extends State<AppDrawer> {
           CircleAvatar(
             radius: 40,
             backgroundImage: const AssetImage("assets/logo/logo.png"),
-            backgroundColor: Colors.pink.withOpacity(0.9),
+            backgroundColor: Colors.pink.withValues(alpha: 0.9),
           ),
           const SizedBox(height: 10),
           const Text(
@@ -744,9 +784,9 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
           ),
           Text(
-            'random@example.com',
+            _headerEmail,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 14,
             ),
           ),
@@ -787,120 +827,94 @@ class _AppDrawerState extends State<AppDrawer> {
             child: Column(
               children: [
                 _buildSubMenuItem(
-                  icon: Icons.account_circle,
+                  icon: FontAwesomeIcons.idBadge,
                   title: "My Profile",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to view profile
-                    print("My Profile clicked");
+                    _openDrawerPage(context, const MyProfilePage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.edit,
+                  icon: FontAwesomeIcons.userGear,
                   title: "Account",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to edit profile
-                    print("Account clicked");
+                    _openDrawerPage(context, const AccountPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.phone_android_sharp,
+                  icon: FontAwesomeIcons.signal,
                   title: "Online",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to photos
-                    print("Online clicked");
+                    _openDrawerPage(context, const OnlinePage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.person_2,
+                  icon: FontAwesomeIcons.userGroup,
                   title: "Friends",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to activity history
-                    print("Friends clicked");
+                    _openDrawerPage(context, const FriendsPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.mobile_friendly,
+                  icon: FontAwesomeIcons.userClock,
                   title: "Friend Request",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to verification
-                    print("Friend Request clicked");
+                    _openDrawerPage(context, const FriendRequestPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.account_circle,
+                  icon: FontAwesomeIcons.user,
                   title: "New Member",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to view profile
-                    print("New Member clicked");
+                    _openDrawerPage(context, const NewMemberPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.edit,
+                  icon: FontAwesomeIcons.solidCircleCheck,
                   title: "Validation",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to edit profile
-                    print("Validation clicked");
+                    _openDrawerPage(context, const ValidationPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.photo_library,
+                  icon: FontAwesomeIcons.clipboardCheck,
                   title: "Validation Request",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to photos
-                    print("Validation Request clicked");
+                    _openDrawerPage(context, const ValidationRequestPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.history,
+                  icon: FontAwesomeIcons.eye,
                   title: "Viewed Me",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to activity history
-                    print("Viewed Me clicked");
+                    _openDrawerPage(context, const ViewedMePage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.verified_user,
+                  icon: FontAwesomeIcons.solidHeart,
                   title: "Likes",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to verification
-                    print("Likes clicked");
+                    _openDrawerPage(context, const LikesPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.account_circle,
+                  icon: FontAwesomeIcons.userSlash,
                   title: "Blocklist",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to view profile
-                    print("Blocklist clicked");
+                    _openDrawerPage(context, const BlocklistPage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.edit,
+                  icon: FontAwesomeIcons.solidStar,
                   title: "Favorite",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to edit profile
-                    print("Favorite clicked");
+                    _openDrawerPage(context, const FavoritePage());
                   },
                 ),
                 _buildSubMenuItem(
-                  icon: Icons.photo_library,
+                  icon: FontAwesomeIcons.solidNoteSticky,
                   title: "Notes",
                   onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to photos
-                    print("Notes clicked");
+                    _openDrawerPage(context, const NotesPage());
                   },
                 ),
               ],
@@ -912,13 +926,15 @@ class _AppDrawerState extends State<AppDrawer> {
 
   // ✅ Move this method inside the State class
   Widget _buildSubMenuItem({
-    required IconData icon,
+    required Object icon,
+    // required IconData icon,
     required String title,
     required VoidCallback onTap,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 72, right: 16),
-      leading: Icon(icon, size: 20, color: AppColors.primary),
+      // leading: _buildDrawerLeadingIcon(icon, color: AppColors.primary, size: 20),
+      leading: _buildDrawerLeadingIcon(icon, color: Colors.black, size: 20),
       title: Text(
         title,
         style: TextStyle(fontSize: 14, color: Colors.grey[800]),
@@ -929,12 +945,12 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Widget _buildDrawerItem(
     BuildContext context, {
-    required IconData icon,
+    required Object icon,
     required String title,
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.black87),
+      leading: _buildDrawerLeadingIcon(icon, color: Colors.black87),
       title: Text(
         title,
         style: const TextStyle(
@@ -944,6 +960,25 @@ class _AppDrawerState extends State<AppDrawer> {
       ),
       onTap: onTap,
     );
+  }
+
+  Widget _buildDrawerLeadingIcon(
+    Object icon, {
+    required Color color,
+    double size = 22,
+  }) {
+    if (icon is IconData) {
+      return Icon(icon, color: color, size: size);
+    }
+    if (icon is FaIconData) {
+      return FaIcon(icon, color: color, size: size - 2);
+    }
+    return Icon(Icons.circle, color: color, size: size);
+  }
+
+  void _openDrawerPage(BuildContext context, Widget page) {
+    Navigator.pop(context);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
   void _logout(BuildContext context) {
@@ -962,13 +997,14 @@ class _AppDrawerState extends State<AppDrawer> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Navigator.pop(context);
-              // Perform logout
-              Navigator.push(
-                context,MaterialPageRoute(
-                  builder:(context)=> LoginPage(),
-                )
+            onPressed: () async {
+              Navigator.pop(context);
+              await AuthService.logout();
+              if (!context.mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red,foregroundColor: Colors.white),
