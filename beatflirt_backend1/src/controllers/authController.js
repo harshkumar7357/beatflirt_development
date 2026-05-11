@@ -284,6 +284,23 @@ async function deleteVideo(req, res) {
   }
 }
 
+async function updatePrivacy(req, res) {
+  try {
+    const { privacy } = req.body ?? {};
+    if (!privacy) return res.status(400).json({ message: "privacy object is required" });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.privacy = { ...user.privacy, ...privacy };
+    await user.save();
+
+    return res.status(200).json({ message: "Privacy settings updated", privacy: user.privacy });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update privacy settings", error: error.message });
+  }
+}
+
 function logout(req, res) {
   // Stateless JWT: client discards the token. This endpoint confirms intent server-side
   // (metrics, future denylist, etc.).
@@ -304,5 +321,6 @@ module.exports = {
   getVideos,
   addVideo,
   deleteVideo,
+  updatePrivacy,
   logout,
 };

@@ -10,13 +10,14 @@ class ApiServices {
   ApiServices({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
-  static const Duration _requestTimeout = Duration(seconds: 5);
+  static const Duration _requestTimeout = Duration(seconds: 15);
 
   // For physical Android device use your laptop IP:
   // flutter run --dart-define=API_BASE_URL=http://192.168.x.x:5001
   static const String _defaultBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:5001',
+    // defaultValue: 'http://10.0.2.2:5001',
+    defaultValue: 'http://192.168.1.13:5001'
   );
 
   Uri _uri(String path) => Uri.parse('$_defaultBaseUrl$path');
@@ -109,7 +110,7 @@ class ApiServices {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(_requestTimeout);
     final body = _decodeJson(response.body);
     if (response.statusCode != 200) {
       throw Exception(body['message'] ?? 'Logout failed');
@@ -270,6 +271,25 @@ class ApiServices {
     if (response.statusCode != 200) {
       throw Exception(body['message'] ?? 'Failed to delete video');
     }
+  }
+
+  Future<Map<String, dynamic>> updatePrivacy({
+    required String token,
+    required Map<String, dynamic> privacy,
+  }) async {
+    final response = await _client.put(
+      _uri('/api/auth/privacy'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'privacy': privacy}),
+    ).timeout(_requestTimeout);
+    final body = _decodeJson(response.body);
+    if (response.statusCode != 200) {
+      throw Exception(body['message'] ?? 'Failed to update privacy');
+    }
+    return body;
   }
 
   Future<List<CardData>> fetchCards({String? token}) async {

@@ -30,6 +30,13 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpires: { type: Date, default: null },
     photos: { type: [mediaPhotoSchema], default: [] },
     videos: { type: [mediaVideoSchema], default: [] },
+    privacy: {
+      showOnlineStatus: { type: Boolean, default: true },
+      showProfileToPublic: { type: Boolean, default: true },
+      allowMessagesFromStrangers: { type: Boolean, default: true },
+      showLastSeen: { type: Boolean, default: true },
+      hideFromSearch: { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );

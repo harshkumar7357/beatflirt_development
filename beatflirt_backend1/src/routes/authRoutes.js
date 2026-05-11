@@ -13,6 +13,7 @@ const {
   getVideos,
   addVideo,
   deleteVideo,
+  updatePrivacy,
   logout,
 } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
@@ -32,6 +33,7 @@ router.delete("/photos/:mediaId", authMiddleware, deletePhoto);
 router.get("/videos", authMiddleware, getVideos);
 router.post("/videos", authMiddleware, addVideo);
 router.delete("/videos/:mediaId", authMiddleware, deleteVideo);
+router.put("/privacy", authMiddleware, updatePrivacy);
 router.post("/logout", authMiddleware, logout);
 
 module.exports = router;

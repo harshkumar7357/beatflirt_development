@@ -8,7 +8,8 @@ const PORT = process.env.PORT || 5001;
 async function startServer() {
   try {
     await connectDB();
-    app.listen(PORT, () => {
+//    app.listen(PORT, '0.0.0.0', () => {
+      app.listen(5001, '0.0.0.0', () => {
       console.log(`beatflirt_backend1 running on port ${PORT}`);
     });
   } catch (error) {

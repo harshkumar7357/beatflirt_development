@@ -1,37 +1,23 @@
-import 'package:beatflirt/Api_services/api_services.dart';
 import 'package:beatflirt/core/app_color_constants.dart';
-import 'package:beatflirt/core/services/auth_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
-
+import '../providers/register_provider.dart';
 import 'home_screen.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
-  final ApiServices _apiServices = ApiServices();
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-
-  bool get _hasMinLength => _passwordController.text.length >= 8;
-  bool get _startsWithCapital => RegExp(r'^[A-Z]').hasMatch(_passwordController.text);
-  bool get _hasMiddleLetter => RegExp(r'^.{1,}[A-Za-z].{1,}$').hasMatch(_passwordController.text);
-  bool get _endsWithLetter => RegExp(r'[A-Za-z]$').hasMatch(_passwordController.text);
-
-  bool get _isStrongByRegex =>
-      RegExp(r'^(?=.{8,}$)[A-Z].*[A-Za-z]$').hasMatch(_passwordController.text) &&
-      _hasMiddleLetter;
 
   @override
   void dispose() {
@@ -43,46 +29,47 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate() || _isLoading) return;
-    setState(() => _isLoading = true);
-    try {
-      final data = await _apiServices.register(
-        name: _nameController.text,
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-      final token = (data['token'] ?? '').toString();
-      final user = (data['user'] as Map<String, dynamic>?);
-      final email = (user?['email'] ?? _emailController.text).toString();
-      await AuthService.login(token: token, email: email);
-      if (!mounted) return;
+    if (!_formKey.currentState!.validate()) return;
+    final state = ref.read(registerProvider);
+    if (state.isLoading) return;
+
+    final result = await ref.read(registerProvider.notifier).register(
+      name: _nameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    if (!mounted || result == null) return;
+
+    if (result.$2) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
-        (route) => false,
+            (route) => false,
       );
       Get.snackbar(
         "Success",
-        "Account created successfully",
+        result.$1,
         duration: const Duration(seconds: 2),
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-    } catch (e) {
+    } else {
       Get.snackbar(
         "Registration Failed",
-        e.toString().replaceFirst('Exception: ', ''),
+        result.$1,
         duration: const Duration(seconds: 2),
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(registerProvider);
+    final notifier = ref.read(registerProvider.notifier);
+
     return Scaffold(
       backgroundColor: Colors.amber,
       appBar: AppBar(
@@ -139,43 +126,46 @@ class _RegisterPageState extends State<RegisterPage> {
                 _field(
                   controller: _passwordController,
                   hint: "Enter password",
-                  obscureText: _obscurePassword,
+                  obscureText: state.obscurePassword,
                   textInputAction: TextInputAction.next,
-                  onChanged: (_) => setState(() {}),
+                  onChanged: notifier.updatePassword,
                   suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
+                    onPressed: notifier.toggleObscurePassword,
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      state.obscurePassword ? Icons.visibility_off : Icons.visibility,
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return "Please enter password";
-                    if (!_isStrongByRegex) {
+                    if (!ref.read(registerProvider).isStrongByRegex) {
                       return "Password must match required format";
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 8),
-                _passwordRule("Minimum 8 characters", _hasMinLength),
-                _passwordRule("First letter must be CAPITAL", _startsWithCapital),
-                _passwordRule("Must contain a letter in between", _hasMiddleLetter),
-                _passwordRule("Last character must be a letter", _endsWithLetter),
+                // _passwordRule("Minimum 8 characters", state.hasMinLength),
+                // _passwordRule("First letter must be CAPITAL", state.startsWithCapital),
+                // _passwordRule("Must contain a letter in between", state.hasMiddleLetter),
+                // _passwordRule("Last character must be a letter", state.endsWithLetter),
+
+                _passwordRule("At least 8 characters", state.hasMinLength),
+                _passwordRule("At least one uppercase letter (A-Z)", state.hasUppercase),
+                _passwordRule("At least one lowercase letter (a-z)", state.hasLowercase),
+                _passwordRule("At least one digit (0-9)", state.hasDigit),
+                _passwordRule("At least one special character (!@#\$%&*)", state.hasSpecialChar),
+
                 const SizedBox(height: 12),
                 _label("Confirm Password"),
                 _field(
                   controller: _confirmPasswordController,
                   hint: "Re-enter password",
-                  obscureText: _obscureConfirmPassword,
+                  obscureText: state.obscureConfirmPassword,
                   textInputAction: TextInputAction.done,
                   suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                    },
+                    onPressed: notifier.toggleObscureConfirmPassword,
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      state.obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
                     ),
                   ),
                   validator: (value) {
@@ -199,15 +189,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: _isLoading
+                    child: state.isLoading
                         ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                         : const Text("Register"),
                   ),
                 ),

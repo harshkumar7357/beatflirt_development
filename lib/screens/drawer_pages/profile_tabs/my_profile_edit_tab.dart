@@ -1,78 +1,187 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 
-class MyProfileEditTab extends StatefulWidget {
-  const MyProfileEditTab({super.key});
+// --- STATE ---
+class ProfileEditState {
+  final bool isProfileDetailsTab;
+  final Map<String, bool> swingersOptions;
+  final Map<String, bool> hookupOptions;
+  final bool isSwingersExpanded;
+  final bool isHookupExpanded;
+  final String aboutMe;
+  final String lookingFor;
+  final Map<String, String> partner1;
+  final Map<String, String> partner2;
+  final List<String> partner1Languages;
+  final List<String> partner2Languages;
 
-  @override
-  State<MyProfileEditTab> createState() => _MyProfileEditTabState();
+  const ProfileEditState({
+    this.isProfileDetailsTab = false,
+    required this.swingersOptions,
+    required this.hookupOptions,
+    this.isSwingersExpanded = true,
+    this.isHookupExpanded = true,
+    this.aboutMe = 'About me',
+    this.lookingFor = 'Describe what you are looking for...',
+    required this.partner1,
+    required this.partner2,
+    required this.partner1Languages,
+    required this.partner2Languages,
+  });
+
+  ProfileEditState copyWith({
+    bool? isProfileDetailsTab,
+    Map<String, bool>? swingersOptions,
+    Map<String, bool>? hookupOptions,
+    bool? isSwingersExpanded,
+    bool? isHookupExpanded,
+    String? aboutMe,
+    String? lookingFor,
+    Map<String, String>? partner1,
+    Map<String, String>? partner2,
+    List<String>? partner1Languages,
+    List<String>? partner2Languages,
+  }) {
+    return ProfileEditState(
+      isProfileDetailsTab: isProfileDetailsTab ?? this.isProfileDetailsTab,
+      swingersOptions: swingersOptions ?? this.swingersOptions,
+      hookupOptions: hookupOptions ?? this.hookupOptions,
+      isSwingersExpanded: isSwingersExpanded ?? this.isSwingersExpanded,
+      isHookupExpanded: isHookupExpanded ?? this.isHookupExpanded,
+      aboutMe: aboutMe ?? this.aboutMe,
+      lookingFor: lookingFor ?? this.lookingFor,
+      partner1: partner1 ?? this.partner1,
+      partner2: partner2 ?? this.partner2,
+      partner1Languages: partner1Languages ?? this.partner1Languages,
+      partner2Languages: partner2Languages ?? this.partner2Languages,
+    );
+  }
 }
 
-class _MyProfileEditTabState extends State<MyProfileEditTab> {
-  bool _isProfileDetailsTab = false;
+// --- NOTIFIER ---
+class ProfileEditNotifier extends Notifier<ProfileEditState> {
+  @override
+  ProfileEditState build() {
+    return ProfileEditState(
+      swingersOptions: {
+        'Couple Female/Male': true,
+        'Couple Female/Female': true,
+        'Couple Male/Male': true,
+        'Female': true,
+        'Male': true,
+        'Transgender': true,
+      },
+      hookupOptions: {
+        'Couple Female/Male': true,
+        'Couple Female/Female': true,
+        'Couple Male/Male': true,
+        'Female': true,
+        'Male': true,
+        'Transgender': false,
+      },
+      partner1: {
+        'dateOfBirth': '17/06/2004',
+        'height': "4'6",
+        'weight': '65',
+        'bodyType': 'BBW',
+        'ethnic': 'Italian',
+        'sexuality': 'Straight',
+        'orientation': "I'm not comfortable sharing that.",
+        'tattoos': 'One',
+        'piercings': 'No',
+        'smoking': 'Yes',
+        'drinking': 'Yes',
+        'bodyHair': 'Bikini',
+        'looks': "I'm not comfortable sharing that.",
+        'intelligence': 'Very Important',
+        'circumcised': 'Yes',
+      },
+      partner2: {
+        'dateOfBirth': '03/12/2007',
+        'height': "5'7",
+        'weight': '65',
+        'bodyType': 'Athletic',
+        'ethnic': 'German',
+        'sexuality': 'Straight',
+        'orientation': 'Swinger',
+        'tattoos': 'One',
+        'piercings': 'Yes',
+        'smoking': 'No',
+        'drinking': 'Occasionally',
+        'bodyHair': 'Arm, Chest',
+        'looks': "I'm not comfortable sharing that.",
+        'intelligence': 'Low Importance',
+        'circumcised': "I'm not comfortable sharing that.",
+      },
+      partner1Languages: ['English'],
+      partner2Languages: ['English'],
+    );
+  }
 
-  final Map<String, bool> _swingersOptions = {
-    'Couple Female/Male': true,
-    'Couple Female/Female': true,
-    'Couple Male/Male': true,
-    'Female': true,
-    'Male': true,
-    'Transgender': true,
-  };
+  void toggleProfileTab(bool isProfile) {
+    state = state.copyWith(isProfileDetailsTab: isProfile);
+  }
 
-  final Map<String, bool> _hookupOptions = {
-    'Couple Female/Male': true,
-    'Couple Female/Female': true,
-    'Couple Male/Male': true,
-    'Female': true,
-    'Male': true,
-    'Transgender': false,
-  };
+  void toggleSwingersExpanded() {
+    state = state.copyWith(isSwingersExpanded: !state.isSwingersExpanded);
+  }
 
-  bool _isSwingersExpanded = true;
-  bool _isHookupExpanded = true;
+  void toggleHookupExpanded() {
+    state = state.copyWith(isHookupExpanded: !state.isHookupExpanded);
+  }
 
-  String _aboutMe = 'About me';
-  String _lookingFor = 'Describe what you are looking for...';
+  void updateSwingersOption(String label, bool value) {
+    final newOptions = Map<String, bool>.from(state.swingersOptions);
+    newOptions[label] = value;
+    state = state.copyWith(swingersOptions: newOptions);
+  }
 
-  final Map<String, String> _partner1 = {
-    'dateOfBirth': '17/06/2004',
-    'height': "4'6",
-    'weight': '65',
-    'bodyType': 'BBW',
-    'ethnic': 'Italian',
-    'sexuality': 'Straight',
-    'orientation': "I'm not comfortable sharing that.",
-    'tattoos': 'One',
-    'piercings': 'No',
-    'smoking': 'Yes',
-    'drinking': 'Yes',
-    'bodyHair': 'Bikini',
-    'looks': "I'm not comfortable sharing that.",
-    'intelligence': 'Very Important',
-    'circumcised': 'Yes',
-  };
+  void updateHookupOption(String label, bool value) {
+    final newOptions = Map<String, bool>.from(state.hookupOptions);
+    newOptions[label] = value;
+    state = state.copyWith(hookupOptions: newOptions);
+  }
 
-  final Map<String, String> _partner2 = {
-    'dateOfBirth': '03/12/2007',
-    'height': "5'7",
-    'weight': '65',
-    'bodyType': 'Athletic',
-    'ethnic': 'German',
-    'sexuality': 'Straight',
-    'orientation': 'Swinger',
-    'tattoos': 'One',
-    'piercings': 'Yes',
-    'smoking': 'No',
-    'drinking': 'Occasionally',
-    'bodyHair': 'Arm, Chest',
-    'looks': "I'm not comfortable sharing that.",
-    'intelligence': 'Low Importance',
-    'circumcised': "I'm not comfortable sharing that.",
-  };
+  void updateAboutMe(String value) {
+    state = state.copyWith(aboutMe: value);
+  }
 
-  final List<String> _partner1Languages = ['English'];
-  final List<String> _partner2Languages = ['English'];
+  void updateLookingFor(String value) {
+    state = state.copyWith(lookingFor: value);
+  }
+
+  void updatePartner1(String key, String value) {
+    final newPartner = Map<String, String>.from(state.partner1);
+    newPartner[key] = value;
+    state = state.copyWith(partner1: newPartner);
+  }
+
+  void updatePartner2(String key, String value) {
+    final newPartner = Map<String, String>.from(state.partner2);
+    newPartner[key] = value;
+    state = state.copyWith(partner2: newPartner);
+  }
+
+  void updatePartner1Languages(List<String> langs) {
+    state = state.copyWith(partner1Languages: langs);
+  }
+
+  void updatePartner2Languages(List<String> langs) {
+    state = state.copyWith(partner2Languages: langs);
+  }
+}
+
+// --- PROVIDER ---
+final profileEditProvider =
+NotifierProvider<ProfileEditNotifier, ProfileEditState>(
+  ProfileEditNotifier.new,
+);
+
+// --- WIDGET ---
+class MyProfileEditTab extends ConsumerWidget {
+  const MyProfileEditTab({super.key});
+
   static const List<String> _languageOptions = [
     'English',
     'Hindi',
@@ -95,7 +204,10 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(profileEditProvider);
+    final notifier = ref.read(profileEditProvider.notifier);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final double width = constraints.maxWidth;
@@ -115,12 +227,12 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionHeader(),
+              _sectionHeader(state, notifier),
               const SizedBox(height: 16),
-              if (_isProfileDetailsTab)
-                _buildProfileDetailsContent(width)
+              if (state.isProfileDetailsTab)
+                _buildProfileDetailsContent(context, width, state, notifier)
               else
-                _buildInterestsContent(optionWidth),
+                _buildInterestsContent(optionWidth, state, notifier),
               const SizedBox(height: 18),
               Center(
                 child: SizedBox(
@@ -151,7 +263,7 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
     );
   }
 
-  Widget _sectionHeader() {
+  Widget _sectionHeader(ProfileEditState state, ProfileEditNotifier notifier) {
     return Container(
       height: 38,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -163,23 +275,21 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
       ),
       child: Row(
         children: [
-          Container(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => setState(() => _isProfileDetailsTab = false),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: !_isProfileDetailsTab ? const Color(0xFFFF2D87) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Text(
-                  'INTERESTS',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => notifier.toggleProfileTab(false),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: !state.isProfileDetailsTab ? const Color(0xFFFF2D87) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Text(
+                'INTERESTS',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -187,11 +297,11 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
           const Spacer(),
           InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: () => setState(() => _isProfileDetailsTab = true),
+            onTap: () => notifier.toggleProfileTab(true),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: _isProfileDetailsTab ? const Color(0xFFFF2D87) : Colors.transparent,
+                color: state.isProfileDetailsTab ? const Color(0xFFFF2D87) : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(
@@ -204,13 +314,13 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          // const SizedBox(width: 1),
         ],
       ),
     );
   }
 
-  Widget _buildInterestsContent(double optionWidth) {
+  Widget _buildInterestsContent(double optionWidth, ProfileEditState state, ProfileEditNotifier notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -230,34 +340,26 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
         const SizedBox(height: 16),
         _interestGroup(
           title: 'Swingers',
-          expanded: _isSwingersExpanded,
-          onToggle: () => setState(() => _isSwingersExpanded = !_isSwingersExpanded),
-          options: _swingersOptions,
+          expanded: state.isSwingersExpanded,
+          onToggle: notifier.toggleSwingersExpanded,
+          options: state.swingersOptions,
           optionWidth: optionWidth,
-          onChanged: (label, value) {
-            setState(() {
-              _swingersOptions[label] = value;
-            });
-          },
+          onChanged: (label, value) => notifier.updateSwingersOption(label, value),
         ),
         const SizedBox(height: 12),
         _interestGroup(
           title: 'Hokup / Meetup',
-          expanded: _isHookupExpanded,
-          onToggle: () => setState(() => _isHookupExpanded = !_isHookupExpanded),
-          options: _hookupOptions,
+          expanded: state.isHookupExpanded,
+          onToggle: notifier.toggleHookupExpanded,
+          options: state.hookupOptions,
           optionWidth: optionWidth,
-          onChanged: (label, value) {
-            setState(() {
-              _hookupOptions[label] = value;
-            });
-          },
+          onChanged: (label, value) => notifier.updateHookupOption(label, value),
         ),
       ],
     );
   }
 
-  Widget _buildProfileDetailsContent(double width) {
+  Widget _buildProfileDetailsContent(BuildContext context, double width, ProfileEditState state, ProfileEditNotifier notifier) {
     final bool stacked = width < 760;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,16 +367,16 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
         _textFieldLabel('INTRODUCE YOURSELF *'),
         const SizedBox(height: 6),
         _simpleTextField(
-          initialValue: _aboutMe,
-          onChanged: (v) => _aboutMe = v,
+          initialValue: state.aboutMe,
+          onChanged: notifier.updateAboutMe,
         ),
         const SizedBox(height: 10),
         _textFieldLabel('LOOKING FOR'),
         const SizedBox(height: 6),
         _simpleTextField(
-          initialValue: _lookingFor,
+          initialValue: state.lookingFor,
           maxLines: 2,
-          onChanged: (v) => _lookingFor = v,
+          onChanged: notifier.updateLookingFor,
         ),
         const SizedBox(height: 14),
         const Center(
@@ -287,18 +389,50 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
         if (stacked)
           Column(
             children: [
-              _partnerPanel(title: 'Partner 1', data: _partner1),
+              _partnerPanel(
+                context: context,
+                title: 'Partner 1',
+                data: state.partner1,
+                languages: state.partner1Languages,
+                onFieldChanged: notifier.updatePartner1,
+                onLanguagesChanged: notifier.updatePartner1Languages,
+              ),
               const SizedBox(height: 12),
-              _partnerPanel(title: 'Partner 2', data: _partner2),
+              _partnerPanel(
+                context: context,
+                title: 'Partner 2',
+                data: state.partner2,
+                languages: state.partner2Languages,
+                onFieldChanged: notifier.updatePartner2,
+                onLanguagesChanged: notifier.updatePartner2Languages,
+              ),
             ],
           )
         else
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _partnerPanel(title: 'Partner 1', data: _partner1)),
+              Expanded(
+                child: _partnerPanel(
+                  context: context,
+                  title: 'Partner 1',
+                  data: state.partner1,
+                  languages: state.partner1Languages,
+                  onFieldChanged: notifier.updatePartner1,
+                  onLanguagesChanged: notifier.updatePartner1Languages,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _partnerPanel(title: 'Partner 2', data: _partner2)),
+              Expanded(
+                child: _partnerPanel(
+                  context: context,
+                  title: 'Partner 2',
+                  data: state.partner2,
+                  languages: state.partner2Languages,
+                  onFieldChanged: notifier.updatePartner2,
+                  onLanguagesChanged: notifier.updatePartner2Languages,
+                ),
+              ),
             ],
           ),
       ],
@@ -306,8 +440,12 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
   }
 
   Widget _partnerPanel({
+    required BuildContext context,
     required String title,
     required Map<String, String> data,
+    required List<String> languages,
+    required void Function(String, String) onFieldChanged,
+    required void Function(List<String>) onLanguagesChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,35 +463,36 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
           ),
         ),
         const SizedBox(height: 10),
-        _dropdownField('DATE OF BIRTH', data, 'dateOfBirth', const ['17/06/2004', '03/12/2007']),
-        _dropdownField('HEIGHT', data, 'height', const ['4.6', '5.0', '5.7', '6.0']),
-        _dropdownField('WEIGHT', data, 'weight', const ['55', '60', '65', '70']),
-        _dropdownField('BODY TYPE', data, 'bodyType', const ['BBW', 'Athletic', 'Slim', 'Average']),
-        _dropdownField('ETHNIC BACKGROUND', data, 'ethnic', const ['Italian', 'German', 'Indian']),
-        _dropdownField('SEXUALITY', data, 'sexuality', const ['Straight', 'Bisexual', 'Gay']),
-        _dropdownField('RELATIONSHIP ORIENTATION', data, 'orientation', const ["I'm not comfortable sharing that.", 'Swinger']),
-        _dropdownField('TATTOOS', data, 'tattoos', const ['No', 'One', 'Many']),
-        _dropdownField('PIERCINGS', data, 'piercings', const ['No', 'Yes']),
-        _dropdownField('SMOKING', data, 'smoking', const ['No', 'Yes']),
-        _dropdownField('DRINKING', data, 'drinking', const ['No', 'Yes', 'Occasionally']),
-        _dropdownField('BODY HAIR', data, 'bodyHair', const ['Bikini', 'Arm, Chest', 'Trimmed', 'Natural']),
-        _languagesField(
-          'LANGUAGES SPOKEN',
-          title == 'Partner 1' ? _partner1Languages : _partner2Languages,
-        ),
-        _dropdownField('LOOKS IMPORTANCE', data, 'looks', const ["I'm not comfortable sharing that.", 'Low', 'Medium', 'High']),
-        _dropdownField('INTELLIGENCE IMPORTANCE', data, 'intelligence', const ['Low Importance', 'Medium Importance', 'Very Important']),
-        _dropdownField('CIRCUMCISED', data, 'circumcised', const ['Yes', 'No', "I'm not comfortable sharing that."]),
+        _dropdownField('DATE OF BIRTH', data, 'dateOfBirth', const ['17/06/2004', '03/12/2007'], onFieldChanged),
+        // _dropdownField('HEIGHT', data, 'height', const ['4.6', '5.0', '5.7', '6.0'], onFieldChanged),
+
+        // After (apostrophes — match "4'6" and "5'7")
+        _dropdownField('HEIGHT', data, 'height', const ["4'6", "5'0", "5'7", "6'0"], onFieldChanged),
+        _dropdownField('WEIGHT', data, 'weight', const ['55', '60', '65', '70'], onFieldChanged),
+        _dropdownField('BODY TYPE', data, 'bodyType', const ['BBW', 'Athletic', 'Slim', 'Average'], onFieldChanged),
+        _dropdownField('ETHNIC BACKGROUND', data, 'ethnic', const ['Italian', 'German', 'Indian'], onFieldChanged),
+        _dropdownField('SEXUALITY', data, 'sexuality', const ['Straight', 'Bisexual', 'Gay'], onFieldChanged),
+        _dropdownField('RELATIONSHIP ORIENTATION', data, 'orientation', const ["I'm not comfortable sharing that.", 'Swinger'], onFieldChanged),
+        _dropdownField('TATTOOS', data, 'tattoos', const ['No', 'One', 'Many'], onFieldChanged),
+        _dropdownField('PIERCINGS', data, 'piercings', const ['No', 'Yes'], onFieldChanged),
+        _dropdownField('SMOKING', data, 'smoking', const ['No', 'Yes'], onFieldChanged),
+        _dropdownField('DRINKING', data, 'drinking', const ['No', 'Yes', 'Occasionally'], onFieldChanged),
+        _dropdownField('BODY HAIR', data, 'bodyHair', const ['Bikini', 'Arm, Chest', 'Trimmed', 'Natural'], onFieldChanged),
+        _languagesField(context, 'LANGUAGES SPOKEN', languages, onLanguagesChanged),
+        _dropdownField('LOOKS IMPORTANCE', data, 'looks', const ["I'm not comfortable sharing that.", 'Low', 'Medium', 'High'], onFieldChanged),
+        _dropdownField('INTELLIGENCE IMPORTANCE', data, 'intelligence', const ['Low Importance', 'Medium Importance', 'Very Important'], onFieldChanged),
+        _dropdownField('CIRCUMCISED', data, 'circumcised', const ['Yes', 'No', "I'm not comfortable sharing that."], onFieldChanged),
       ],
     );
   }
 
   Widget _dropdownField(
-    String label,
-    Map<String, String> data,
-    String key,
-    List<String> options,
-  ) {
+      String label,
+      Map<String, String> data,
+      String key,
+      List<String> options,
+      void Function(String, String) onFieldChanged,
+      ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -373,34 +512,32 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
             items: options
                 .map(
                   (e) => DropdownMenuItem<String>(
-                    value: e,
-                    child: Text(
-                      e,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                )
+                value: e,
+                child: Text(
+                  e,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            )
                 .toList(),
             selectedItemBuilder: (context) {
               return options
                   .map(
                     (e) => Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        e,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    e,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
                   .toList();
             },
             onChanged: (value) {
               if (value == null) return;
-              setState(() {
-                data[key] = value;
-              });
+              onFieldChanged(key, value);
             },
             decoration: InputDecoration(
               isDense: true,
@@ -455,7 +592,7 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
     );
   }
 
-  Widget _languagesField(String label, List<String> selectedValues) {
+  Widget _languagesField(BuildContext context, String label, List<String> selectedValues, void Function(List<String>) onSaved) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -464,7 +601,7 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
           _textFieldLabel(label),
           const SizedBox(height: 4),
           InkWell(
-            onTap: () => _openLanguageSelector(selectedValues),
+            onTap: () => _openLanguageSelector(context, selectedValues, onSaved),
             borderRadius: BorderRadius.circular(8),
             child: Container(
               width: double.infinity,
@@ -481,27 +618,27 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
                       runSpacing: 6,
                       children: selectedValues.isEmpty
                           ? [
-                              Text(
-                                'Select languages',
-                                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                              ),
-                            ]
+                        Text(
+                          'Select languages',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                      ]
                           : selectedValues
-                              .map(
-                                (lang) => Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF0F4FF),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFFD4DDF2)),
-                                  ),
-                                  child: Text(
-                                    lang,
-                                    style: const TextStyle(fontSize: 11),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                          .map(
+                            (lang) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4FF),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFD4DDF2)),
+                          ),
+                          child: Text(
+                            lang,
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                        ),
+                      )
+                          .toList(),
                     ),
                   ),
                   const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
@@ -514,7 +651,7 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
     );
   }
 
-  Future<void> _openLanguageSelector(List<String> selectedValues) async {
+  Future<void> _openLanguageSelector(BuildContext context, List<String> selectedValues, void Function(List<String>) onSaved) async {
     final temp = [...selectedValues];
     await showModalBottomSheet<void>(
       context: context,
@@ -533,7 +670,7 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
                     ),
                     const SizedBox(height: 10),
                     ..._languageOptions.map(
-                      (lang) => CheckboxListTile(
+                          (lang) => CheckboxListTile(
                         dense: true,
                         value: temp.contains(lang),
                         onChanged: (checked) {
@@ -554,11 +691,7 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          setState(() {
-                            selectedValues
-                              ..clear()
-                              ..addAll(temp);
-                          });
+                          onSaved(temp);
                           Navigator.pop(context);
                         },
                         child: const Text('Done'),
@@ -643,12 +776,12 @@ class _MyProfileEditTabState extends State<MyProfileEditTab> {
                 children: options.entries
                     .map(
                       (entry) => _OptionChip(
-                        label: entry.key,
-                        selected: entry.value,
-                        width: optionWidth,
-                        onTap: () => onChanged(entry.key, !entry.value),
-                      ),
-                    )
+                    label: entry.key,
+                    selected: entry.value,
+                    width: optionWidth,
+                    onTap: () => onChanged(entry.key, !entry.value),
+                  ),
+                )
                     .toList(),
               ),
             ),

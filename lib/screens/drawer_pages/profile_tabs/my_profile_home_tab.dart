@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
-class MyProfileHomeTab extends StatelessWidget {
+class MyProfileHomeTab extends StatefulWidget {
   const MyProfileHomeTab({super.key});
 
+  @override
+  State<MyProfileHomeTab> createState() => _MyProfileHomeTabState();
+}
+
+class _MyProfileHomeTabState extends State<MyProfileHomeTab> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -36,9 +41,14 @@ class MyProfileHomeTab extends StatelessWidget {
   }
 }
 
-class _ProfileCard extends StatelessWidget {
+class _ProfileCard extends StatefulWidget {
   const _ProfileCard();
 
+  @override
+  State<_ProfileCard> createState() => _ProfileCardState();
+}
+
+class _ProfileCardState extends State<_ProfileCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -101,7 +111,7 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-class _TraitsTable extends StatelessWidget {
+class _TraitsTable extends StatefulWidget {
   const _TraitsTable();
 
   static const List<_Trait> _traits = [
@@ -117,9 +127,14 @@ class _TraitsTable extends StatelessWidget {
   ];
 
   @override
+  State<_TraitsTable> createState() => _TraitsTableState();
+}
+
+class _TraitsTableState extends State<_TraitsTable> {
+  @override
   Widget build(BuildContext context) {
     return Column(
-      children: _traits.map((trait) => _TraitRow(trait: trait)).toList(),
+      children: _TraitsTable._traits.map((trait) => _TraitRow(trait: trait)).toList(),
     );
   }
 }
@@ -178,7 +193,7 @@ class _TraitRow extends StatelessWidget {
   }
 }
 
-class _ConversationValue extends StatelessWidget {
+class _ConversationValue extends StatefulWidget {
   const _ConversationValue({
     required this.text,
     required this.avatarIcon,
@@ -187,6 +202,11 @@ class _ConversationValue extends StatelessWidget {
   final String text;
   final IconData avatarIcon;
 
+  @override
+  State<_ConversationValue> createState() => _ConversationValueState();
+}
+
+class _ConversationValueState extends State<_ConversationValue> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -201,7 +221,7 @@ class _ConversationValue extends StatelessWidget {
             ),
             border: Border.all(color: const Color(0xFFBDD1F8)),
           ),
-          child: Icon(avatarIcon, size: 16, color: const Color(0xFF3B6CB7)),
+          child: Icon(widget.avatarIcon, size: 16, color: const Color(0xFF3B6CB7)),
         ),
         const SizedBox(width: 6),
         Expanded(
@@ -221,7 +241,7 @@ class _ConversationValue extends StatelessWidget {
               ],
             ),
             child: Text(
-              text,
+              widget.text,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.black87,
@@ -248,9 +268,14 @@ class _Trait {
   final String match;
 }
 
-class _ProfileSummaryPanels extends StatelessWidget {
+class _ProfileSummaryPanels extends StatefulWidget {
   const _ProfileSummaryPanels();
 
+  @override
+  State<_ProfileSummaryPanels> createState() => _ProfileSummaryPanelsState();
+}
+
+class _ProfileSummaryPanelsState extends State<_ProfileSummaryPanels> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(

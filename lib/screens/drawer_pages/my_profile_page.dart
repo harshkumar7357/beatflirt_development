@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/profile_provider.dart';
 import 'profile_tabs/my_profile_album_tab.dart';
 import 'profile_tabs/my_profile_edit_tab.dart';
 import 'profile_tabs/my_profile_home_tab.dart';
@@ -6,15 +8,8 @@ import 'profile_tabs/my_profile_location_tab.dart';
 import 'profile_tabs/my_profile_photos_tab.dart';
 import 'profile_tabs/my_profile_video_tab.dart';
 
-class MyProfilePage extends StatefulWidget {
+class MyProfilePage extends ConsumerWidget {
   const MyProfilePage({super.key});
-
-  @override
-  State<MyProfilePage> createState() => _MyProfilePageState();
-}
-
-class _MyProfilePageState extends State<MyProfilePage> {
-  int _selectedTabIndex = 0;
 
   static const List<String> _tabLabels = [
     'Home',
@@ -37,8 +32,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedTabIndex = ref.watch(profileTabProvider);
     final pages = _tabPages();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4ECF8),
       appBar: AppBar(
@@ -50,6 +47,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
             color: Colors.black87,
             fontWeight: FontWeight.w700,
           ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
@@ -69,15 +70,15 @@ class _MyProfilePageState extends State<MyProfilePage> {
             ),
             child: Column(
               children: [
-                _buildTopTabs(),
+                _buildTopTabs(ref, selectedTabIndex),
                 const SizedBox(height: 14),
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 220),
                     child: SingleChildScrollView(
-                      key: ValueKey<int>(_selectedTabIndex),
+                      key: ValueKey<int>(selectedTabIndex),
                       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                      child: pages[_selectedTabIndex],
+                      child: pages[selectedTabIndex],
                     ),
                   ),
                 ),
@@ -89,7 +90,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     );
   }
 
-  Widget _buildTopTabs() {
+  Widget _buildTopTabs(WidgetRef ref, int selectedTabIndex) {
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
       padding: const EdgeInsets.all(6),
@@ -104,11 +105,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
           _tabLabels.length,
           (index) => _TopTab(
             label: _tabLabels[index],
-            selected: _selectedTabIndex == index,
+            selected: selectedTabIndex == index,
             onTap: () {
-              setState(() {
-                _selectedTabIndex = index;
-              });
+              ref.read(profileTabProvider.notifier).state = index;
             },
           ),
         ),
