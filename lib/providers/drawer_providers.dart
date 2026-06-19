@@ -118,7 +118,9 @@
 //     loadEmail();
 //   }
 // }
+import 'package:beatflirt/screens/drawer_pages/profile_tabs/my_profile_edit_tab.dart' as _apiService;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';  
 import '../Api_services/api_services.dart';
 import '../core/services/auth_services.dart';
 
@@ -132,7 +134,7 @@ final drawerEmailProvider = NotifierProvider<DrawerEmailNotifier, String>(
 
 // ✅ Updated for Riverpod 3.x - use Notifier instead of StateNotifier
 class DrawerEmailNotifier extends Notifier<String> {
-  final ApiServices _apiServices = ApiServices();
+  // final ApiService _apiService = ApiService();
 
   @override
   String build() {
@@ -153,7 +155,7 @@ class DrawerEmailNotifier extends Notifier<String> {
       final token = await AuthService.getToken();
       if (token == null || token.isEmpty) return;
 
-      final profile = await _apiServices.getProfile(token: token);
+      final profile = await _apiService.getProfile(token: token);
       final user = profile['user'];
 
       String? email;

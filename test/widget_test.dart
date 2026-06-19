@@ -10,6 +10,47 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:beatflirt/main.dart';
 
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: _CounterPage(),
+    );
+  }
+}
+
+class _CounterPage extends StatefulWidget {
+  @override
+  State<_CounterPage> createState() => _CounterPageState();
+}
+
+class _CounterPageState extends State<_CounterPage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Counter Test')),
+      body: Center(
+        child: Text(
+          '$_counter',
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.

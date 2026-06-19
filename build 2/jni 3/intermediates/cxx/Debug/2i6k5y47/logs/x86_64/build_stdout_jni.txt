@@ -1,0 +1,2 @@
+ninja: Entering directory `/Users/apple/.pub-cache/hosted/pub.dev/jni-1.0.0/android/.cxx/Debug/2i6k5y47/x86_64'
+ninja: no work to do.

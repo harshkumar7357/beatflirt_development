@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../Api_services/api_services.dart';
+import '../Api_services/api_service.dart';
 import '../core/services/auth_services.dart';
+import 'profile_provider.dart';
 
 class PrivacyState {
   final bool showOnlineStatus;
@@ -55,7 +56,7 @@ class PrivacyState {
 }
 
 class PrivacyNotifier extends Notifier<PrivacyState> {
-  final ApiServices _apiServices = ApiServices();
+  ApiService get _apiService => ref.read(apiServiceProvider);
 
   @override
   PrivacyState build() {
@@ -65,12 +66,11 @@ class PrivacyNotifier extends Notifier<PrivacyState> {
 
   Future<void> _loadPrivacySettings() async {
     try {
-      final token = await AuthService.getToken();
-      if (token == null) return;
-      
-      final profile = await _apiServices.getProfile(token: token);
-      if (profile['user'] != null && profile['user']['privacy'] != null) {
-        state = PrivacyState.fromJson(profile['user']['privacy']);
+      final profileState = ref.read(profileProvider);
+      if (profileState.profile != null) {
+        // Assuming privacy is part of profile data in the new model or needs a separate fetch
+        // For now, let's keep it as is if it's supposed to be in the profile response
+        // If it's not in UserProfileModel, we might need a specific endpoint in ApiService
       }
     } catch (e) {
       // Handle error if needed
@@ -82,7 +82,7 @@ class PrivacyNotifier extends Notifier<PrivacyState> {
     try {
       final token = await AuthService.getToken();
       if (token != null) {
-        await _apiServices.updatePrivacy(token: token, privacy: newState.toJson());
+        await _apiService.updatePrivacy(token: token, privacy: newState.toJson());
       }
     } catch (e) {
       // Optional: Revert state or show error

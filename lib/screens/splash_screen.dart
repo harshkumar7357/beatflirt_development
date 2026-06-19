@@ -1,4 +1,10 @@
+import 'package:beatflirt/beatflirt_landing_page.dart';
 import 'package:beatflirt/screens/login_page.dart';
+// import 'package:beatflirt/screens/main_navigation/navigation_bar2.dart';
+// import 'package:beatflirt/screens/main_navigation/navigation_bar3.dart';
+// import 'package:beatflirt/screens/main_navigation/navigations_bar.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import '../core/services/auth_services.dart';
 import 'home_screen.dart';
@@ -34,15 +40,14 @@ class _SplashScreenState extends State<SplashScreen>
     _logoScale = Tween<double>(begin: 0.68, end: 1).animate(
       CurvedAnimation(parent: _introController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _introController, curve: Curves.easeIn),
-    );
-    _titleOffset = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _introController, curve: Curves.easeOutCubic),
-    );
+    _logoOpacity = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _introController, curve: Curves.easeIn));
+    _titleOffset = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _introController, curve: Curves.easeOutCubic),
+        );
     _taglineOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _introController,
@@ -56,22 +61,34 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkLogin() async {
     try {
+      print("STEP 1: Starting auth check");
+
+      await AuthService.probeAuth(); // Trigger the auth probe
+      print("STEP 2: probeAuth completed");
       final results = await Future.wait<dynamic>([
         AuthService.isLoggedIn(),
         Future<void>.delayed(const Duration(milliseconds: 2600)),
       ]);
+      print("STEP 3: isLoggedIn and delay completed");
       if (!mounted) return;
+      print("STEP 4: Navigator called (loggedIn: ${results.first})");
       final bool loggedIn = results.first as bool;
 
-      final Widget nextPage = loggedIn ? const HomePage() : const LoginPage();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => nextPage),
-      );
+      // final Widget nextPage = loggedIn ? const HomePage() : const LoginPage();
+      final Widget nextPage = loggedIn ? const HomePage() : const BeatFlirtLandingPage();
+
+      // final Widget nextPage = loggedIn ? const MainNavigationPage() : const LoginPage();
+      // final Widget nextPage = loggedIn ? const MainShell() : const LoginPage();
+      // final Widget nextPage = loggedIn ? const HomePage1() : const LoginPage();
+
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => nextPage));
     } catch (_) {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginPage()));
     }
   }
 
@@ -119,7 +136,10 @@ class _SplashScreenState extends State<SplashScreen>
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: AnimatedBuilder(
-                  animation: Listenable.merge([_introController, _pulseController]),
+                  animation: Listenable.merge([
+                    _introController,
+                    _pulseController,
+                  ]),
                   builder: (context, _) {
                     final glow = 0.15 + (_pulseController.value * 0.35);
                     return Column(
@@ -198,7 +218,9 @@ class _SplashScreenState extends State<SplashScreen>
                             child: LinearProgressIndicator(
                               minHeight: 5,
                               borderRadius: BorderRadius.circular(999),
-                              backgroundColor: Colors.white.withValues(alpha: 0.35),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.35,
+                              ),
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 Colors.white,
                               ),
@@ -231,12 +253,7 @@ class _GlowOrb extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0),
-          ],
-        ),
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
       ),
     );
   }
