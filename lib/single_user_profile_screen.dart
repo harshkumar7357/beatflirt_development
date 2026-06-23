@@ -1334,30 +1334,62 @@ class _BeatSingleUserProfileScreenState extends State<BeatSingleUserProfileScree
   }
 
   Widget _rightDetails(SingleUserProfile profile) {
-    final details = <_DetailItem>[
-      _DetailItem('Tattoos', profile.value('person1_tattoos')),
-      _DetailItem('Body Hair', profile.value('person1_body_hair')),
-      _DetailItem('Weight', profile.valueWithType('person1_weight', 'weight1_type')),
-      _DetailItem('Height', profile.valueWithType('person1_height', 'height1_type')),
-      _DetailItem('Smoking', profile.value('person1_smoking')),
-      _DetailItem('Drinking', profile.value('person1_drinking')),
-      _DetailItem('Body Type', profile.value('person1_body_type')),
-      _DetailItem('Language Spoken', profile.value('person1_language_spoken')),
-      _DetailItem('Ethnic Background', profile.value('person1_ethnic_background')),
-      _DetailItem('Piercings', profile.value('person1_piercings')),
-      _DetailItem('Intelligence as importance', profile.value('person1_intelligence_importance')),
-      _DetailItem('Looks are Important', profile.value('person1_looks_important')),
-      _DetailItem('Relationship Orientation', profile.value('person1_relationship_orientation')),
-      _DetailItem('Circumcised', profile.value('person1_circumcised')),
-      _DetailItem('Sexuality', profile.value('person1_sexuality')),
-    ];
+    final isCouple = profile.raw['profile_type']?.toString().toLowerCase() == 'couple';
+    final details = <_DetailItem>[];
+
+    void addDetail(String label, String key, {String? typeKey}) {
+      final val1 = typeKey != null 
+          ? profile.valueWithType('person1_$key', typeKey) 
+          : profile.value('person1_$key');
+          
+      if (isCouple) {
+        final val2 = typeKey != null 
+            ? profile.valueWithType('person2_$key', typeKey.replaceAll('1', '2')) 
+            : profile.value('person2_$key');
+        details.add(_DetailItem(label, val1, value2: val2));
+      } else {
+        details.add(_DetailItem(label, val1));
+      }
+    }
+
+    addDetail('Tattoos', 'tattoos');
+    addDetail('Body Hair', 'body_hair');
+    addDetail('Weight', 'weight', typeKey: 'weight1_type');
+    addDetail('Height', 'height', typeKey: 'height1_type');
+    addDetail('Smoking', 'smoking');
+    addDetail('Drinking', 'drinking');
+    addDetail('Body Type', 'body_type');
+    addDetail('Language Spoken', 'language_spoken');
+    addDetail('Ethnic Background', 'ethnic_background');
+    addDetail('Piercings', 'piercings');
+    addDetail('Intelligence as importance', 'intelligence_importance');
+    addDetail('Looks are Important', 'looks_important');
+    addDetail('Relationship Orientation', 'relationship_orientation');
+    addDetail('Circumcised', 'circumcised');
+    addDetail('Sexuality', 'sexuality');
+
+    bool isMeaningful(String? val) {
+      if (val == null) return false;
+      final clean = val.trim().toLowerCase();
+      if (clean.isEmpty) return false;
+      if (clean.contains('not comfortable sharing') || clean == 'n/a' || clean == 'null') return false;
+      return true;
+    }
+
+    final filteredDetails = details.where((item) {
+      if (isCouple) {
+        return isMeaningful(item.value) || isMeaningful(item.value2);
+      } else {
+        return isMeaningful(item.value);
+      }
+    }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _agePill(profile),
         const SizedBox(height: 14),
-        ...details.map((item) => _detailRow(profile, item)),
+        ...filteredDetails.map((item) => _detailRow(profile, item)),
         const SizedBox(height: 18),
         _mediaButtons(),
       ],
@@ -1365,62 +1397,213 @@ class _BeatSingleUserProfileScreenState extends State<BeatSingleUserProfileScree
   }
 
   Widget _agePill(SingleUserProfile profile) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(40),
-              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_maroon, _navy]),
-              boxShadow: const [BoxShadow(color: Color(0x4D9B6AD6), blurRadius: 20, offset: Offset(0, 6))],
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              'Age',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        _genderCircle(profile),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 5,
-          child: Text(
-            '${profile.firstAge} Years',
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 13),
-          ),
-        ),
-      ],
-    );
-  }
+    final isCouple = profile.raw['profile_type']?.toString().toLowerCase() == 'couple';
+    final genders = profile.genderProfileType.split('|').map((e) => e.trim()).toList();
+    final firstGender = genders.isNotEmpty ? genders[0] : '';
+    final secondGender = genders.length > 1 ? genders[1] : '';
 
-  Widget _detailRow(SingleUserProfile profile, _DetailItem item) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+    if (isCouple) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE6DFF0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.purple.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Age',
+              style: TextStyle(
+                color: _maroon,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      _genderCircleFor(firstGender),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${profile.firstAge} Years',
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Row(
+                    children: [
+                      _genderCircleFor(secondGender),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${profile.secondAge} Years',
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE6DFF0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             flex: 4,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_maroon, _navy]),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                item.label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            child: Text(
+              'Age',
+              style: TextStyle(
+                color: _maroon,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),
           const SizedBox(width: 8),
-          _genderCircle(profile),
+          _genderCircleFor(firstGender.isNotEmpty ? firstGender : profile.genderProfileType),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 5,
+            child: Text(
+              '${profile.firstAge} Years',
+              style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(SingleUserProfile profile, _DetailItem item) {
+    final isCouple = profile.raw['profile_type']?.toString().toLowerCase() == 'couple';
+    final genders = profile.genderProfileType.split('|').map((e) => e.trim()).toList();
+    final firstGender = genders.isNotEmpty ? genders[0] : '';
+    final secondGender = genders.length > 1 ? genders[1] : '';
+
+    Widget buildPersonValue(String value, String gender) {
+      final isUnshared = value.trim().toLowerCase().contains('not comfortable sharing') || value.trim().isEmpty;
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _genderCircleFor(gender),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              isUnshared ? 'N/A' : value,
+              style: TextStyle(
+                color: isUnshared ? Colors.black54 : Colors.black,
+                fontSize: 13,
+                fontWeight: isUnshared ? FontWeight.w500 : FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (isCouple) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE6DFF0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.purple.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.label,
+              style: TextStyle(
+                color: _maroon,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(child: buildPersonValue(item.value, firstGender)),
+                const SizedBox(width: 12),
+                Expanded(child: buildPersonValue(item.value2 ?? 'N/A', secondGender)),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE6DFF0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              item.label,
+              style: TextStyle(
+                color: _maroon,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _genderCircleFor(firstGender.isNotEmpty ? firstGender : profile.genderProfileType),
           const SizedBox(width: 8),
           Expanded(
             flex: 5,
@@ -1434,24 +1617,27 @@ class _BeatSingleUserProfileScreenState extends State<BeatSingleUserProfileScree
     );
   }
 
-  Widget _genderCircle(SingleUserProfile profile) {
-    final asset = _genderAsset(profile.genderProfileType);
+  Widget _genderCircleFor(String gender) {
+    final asset = _genderAsset(gender);
     return Container(
-      width: 55,
-      height: 50,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_maroon, _navy]),
-        boxShadow: const [BoxShadow(color: Color(0x599B6AD6), blurRadius: 18, offset: Offset(0, 6))],
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [_maroon, _navy],
+        ),
       ),
       alignment: Alignment.center,
       child: asset == null
           ? const SizedBox.shrink()
           : SvgPicture.network(
               _webAsset(asset),
-              width: 32,
-              height: 32,
-              placeholderBuilder: (_) => const SizedBox(width: 32, height: 32),
+              width: 18,
+              height: 18,
+              placeholderBuilder: (_) => const SizedBox(width: 18, height: 18),
             ),
     );
   }
@@ -1637,9 +1823,10 @@ class _BeatSingleUserProfileScreenState extends State<BeatSingleUserProfileScree
 }
 
 class _DetailItem {
-  _DetailItem(this.label, this.value);
+  _DetailItem(this.label, this.value, {this.value2});
   final String label;
   final String value;
+  final String? value2;
 }
 
 class _TextInputDialog extends StatefulWidget {

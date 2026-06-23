@@ -1017,7 +1017,6 @@ import 'profile_tabs/my_profile_home_tab.dart';
 import 'profile_tabs/my_profile_location_tab.dart';
 import 'profile_tabs/my_profile_photos_tab.dart';
 import 'profile_tabs/my_profile_video_tab.dart';
-import 'package:beatflirt/profile_detials/beat_view_single_profile_page.dart';
 
 class MyProfilePage extends ConsumerWidget {
   const MyProfilePage({super.key});
@@ -1065,8 +1064,9 @@ class MyProfilePage extends ConsumerWidget {
         elevation: 0,
         title: const Text(
           'My Profile',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700),
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700,fontSize: 22),
         ),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -1098,7 +1098,7 @@ class MyProfilePage extends ConsumerWidget {
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 220),
-                    child: SingleChildScrollView(
+                    child: Padding(
                       key: ValueKey<int>(selectedTabIndex),
                       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                       child: pages[selectedTabIndex],

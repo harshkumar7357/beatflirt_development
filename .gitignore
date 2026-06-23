@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/build*/
 /coverage/
 
 # Symbolication related
@@ -43,3 +44,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Additional duplicates and temporary files
+.flutter-plugins-dependencies*
+flutter_*.png
+flutter_*.log
+pubspec *.lock
+*.zip
+*.txt
+

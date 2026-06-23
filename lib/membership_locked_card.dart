@@ -45,7 +45,7 @@ class BeatMembershipLock {
     bool enforceMembershipLock = true,
   }) {
     if (!enforceMembershipLock) return false;
-    return membershipValue != 'Yes';
+    return membershipValue == 'Yes';
   }
 
   static Future<void> showDialogBox(

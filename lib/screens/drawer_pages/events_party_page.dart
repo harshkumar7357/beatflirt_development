@@ -1710,6 +1710,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:beatflirt/single_user_profile_screen.dart';
 
 
 
@@ -2293,120 +2294,144 @@ class _EventCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: () => Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => EventDetailScreen(eventId: event.id)),
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.07),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
     ),
-    child: Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              event.eventImage,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Image
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          child: Image.network(
+            event.eventImage,
+            width: double.infinity,
+            height: 170,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
               width: double.infinity,
               height: 170,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: double.infinity,
-                height: 170,
-                color: Colors.grey[200],
-                child: const Icon(
-                  Icons.image_not_supported,
-                  color: Colors.grey,
-                  size: 40,
-                ),
+              color: Colors.grey[200],
+              child: const Icon(
+                Icons.image_not_supported,
+                color: Colors.grey,
+                size: 40,
               ),
-              loadingBuilder: (_, child, prog) => prog == null
-                  ? child
-                  : Container(
-                      width: double.infinity,
-                      height: 170,
-                      color: Colors.grey[100],
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF8B0045),
-                        ),
-                      ),
-                    ),
             ),
+            loadingBuilder: (_, child, prog) => prog == null
+                ? child
+                : Container(
+                    width: double.infinity,
+                    height: 170,
+                    color: Colors.grey[100],
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF8B0045),
+                      ),
+                    ),
+                  ),
           ),
+        ),
 
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Name + badge
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        event.eventName,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Name + badge
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      event.eventName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: event.eventType == 'public'
+                          ? const Color(0xFF8B0045).withOpacity(0.1)
+                          : const Color(0xFF1A0A2E).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      event.eventType == 'public' ? 'Public' : 'Private',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
                         color: event.eventType == 'public'
-                            ? const Color(0xFF8B0045).withOpacity(0.1)
-                            : const Color(0xFF1A0A2E).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        event.eventType == 'public' ? 'Public' : 'Private',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: event.eventType == 'public'
-                              ? const Color(0xFF8B0045)
-                              : const Color(0xFF1A0A2E),
-                        ),
+                            ? const Color(0xFF8B0045)
+                            : const Color(0xFF1A0A2E),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 6),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
 
-                // Date
+              // Date
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 12,
+                    color: Colors.black45,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      '${_fmt(event.eventFromDate, event.eventFromTime)}  –  ${_fmt(event.eventToDate, event.eventToTime)}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+
+              // Location
+              if (event.formattedAddress.isNotEmpty ||
+                  event.cityName.isNotEmpty)
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
-                      Icons.calendar_today,
+                      Icons.location_on,
                       size: 12,
-                      color: Colors.black45,
+                      color: Color(0xFF8B0045),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${_fmt(event.eventFromDate, event.eventFromTime)}  –  ${_fmt(event.eventToDate, event.eventToTime)}',
+                        event.formattedAddress.isNotEmpty
+                            ? event.formattedAddress
+                            : event.cityName,
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.black54,
@@ -2417,93 +2442,90 @@ class _EventCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
 
-                // Location
-                if (event.formattedAddress.isNotEmpty ||
-                    event.cityName.isNotEmpty)
+              const SizedBox(height: 10),
+
+              // Gender symbols + Person icon row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 12,
-                        color: Color(0xFF8B0045),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          event.formattedAddress.isNotEmpty
-                              ? event.formattedAddress
-                              : event.cityName,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.black54,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.female, size: 20, color: Color(0xFFFF4081)),
+                      Icon(Icons.male, size: 20, color: Color(0xFF00E5FF)),
+                      SizedBox(width: 6),
+                      Icon(Icons.female, size: 20, color: Color(0xFFFF4081)),
+                      Icon(Icons.female, size: 20, color: Color(0xFFFF4081)),
+                      SizedBox(width: 6),
+                      Icon(Icons.female, size: 20, color: Color(0xFFFF4081)),
+                      Icon(Icons.male, size: 20, color: Color(0xFF00E5FF)),
+                      SizedBox(width: 6),
+                      Icon(Icons.male, size: 20, color: Color(0xFF00E5FF)),
+                      SizedBox(width: 6),
+                      Icon(Icons.female, size: 20, color: Color(0xFFFF4081)),
+                      SizedBox(width: 6),
+                      Icon(Icons.transgender, size: 20, color: Color(0xFFAB47BC)),
                     ],
                   ),
-
-                const SizedBox(height: 10),
-
-                // Price + button
-                Row(
-                  children: [
-                    if (event.eventPrice != '0') ...[
-                      const Text(
-                        'From',
-                        style: TextStyle(fontSize: 11, color: Colors.black45),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '\$${event.eventPrice}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF8B0045),
-                        ),
-                      ),
-                    ],
-                    const Spacer(),
-                    ElevatedButton(
-                      onPressed: () => Navigator.push(
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => EventDetailScreen(eventId: event.id),
+                          builder: (_) => EventBookedUserListScreen(
+                            eventId: event.id,
+                            eventName: event.eventName,
+                          ),
                         ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8B0045),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      // child: const Text('View Details',
-                      child: const Text(
-                        'Buy Ticket',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      );
+                    },
+                    child: const Icon(
+                      Icons.person_outline,
+                      color: Color(0xFFFF4081),
+                      size: 20,
                     ),
-                  ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Full-width Buy Ticket button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EventDetailScreen(eventId: event.id),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1B0318), // Dark purple/maroon
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Buy Ticket',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     ),
   );
 }
@@ -2918,6 +2940,299 @@ class _EventFilterButtonState extends State<EventFilterButton> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class EventBookedUserListScreen extends StatefulWidget {
+  final String eventId;
+  final String eventName;
+
+  const EventBookedUserListScreen({
+    super.key,
+    required this.eventId,
+    required this.eventName,
+  });
+
+  @override
+  State<EventBookedUserListScreen> createState() => _EventBookedUserListScreenState();
+}
+
+class _EventBookedUserListScreenState extends State<EventBookedUserListScreen> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<dynamic> _users = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBookedUsers();
+  }
+
+  Future<void> _fetchBookedUsers() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final token = await _Token.get();
+      final response = await http.post(
+        Uri.parse('https://app.beatflirtevent.com/App/events/get_all_event_book_user'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (token.isNotEmpty) ...{
+            'Authorization': 'Bearer $token',
+            'access-token': token,
+          }
+        },
+        body: jsonEncode({
+          'event_id': widget.eventId.toString(),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == "200") {
+          setState(() {
+            _users = data['data'] ?? [];
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = data['message'] ?? 'Failed to retrieve users';
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Server error: ${response.statusCode}';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Connection error: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const Color maroonColor = Color(0xFF8B0045);
+    const Color bgColor = Color(0xFFFFF4FA);
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Event Booked User List',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E0320),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 16),
+                    label: const Text(
+                      'Back',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: maroonColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Users List/Grid
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: maroonColor),
+                      )
+                    : _errorMessage != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 12),
+                                ElevatedButton(
+                                  onPressed: _fetchBookedUsers,
+                                  style: ElevatedButton.styleFrom(backgroundColor: maroonColor),
+                                  child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          )
+                        : _users.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No users have booked this event yet.',
+                                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                                ),
+                              )
+                            : GridView.builder(
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 0.85,
+                                ),
+                                itemCount: _users.length,
+                                itemBuilder: (context, index) {
+                                  final user = _users[index];
+                                  final username = user['username'] ?? 'User';
+                                  final age = user['age']?.toString() ?? '';
+                                  
+                                  // Extract profile image safely
+                                  String imageUrl = 'https://app.beatflirtevent.com/assets/img/male.png';
+                                  if (user['image'] != null && user['image'] is List && (user['image'] as List).isNotEmpty) {
+                                    imageUrl = user['image'][0]['profile_image'] ?? imageUrl;
+                                  }
+
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.04),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        // Profile Image Avatar
+                                        Container(
+                                          width: 80,
+                                          height: 80,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.grey.shade100, width: 2),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.05),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipOval(
+                                            child: Image.network(
+                                              imageUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => const Icon(
+                                                Icons.person,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        
+                                        // Username
+                                        Text(
+                                          username,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+
+                                        // Age
+                                        if (age.isNotEmpty)
+                                          Text(
+                                            'Age: $age',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+
+                                        // View Profile Button
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 32,
+                                          child: OutlinedButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => BeatSingleUserProfileScreen(
+                                                    userId: user['id']?.toString(),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            style: OutlinedButton.styleFrom(
+                                              side: const BorderSide(color: maroonColor, width: 1),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                            child: const Text(
+                                              'View Profile',
+                                              style: TextStyle(
+                                                color: maroonColor,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

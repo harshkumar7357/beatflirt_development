@@ -1283,11 +1283,15 @@ class _OnlinePageState extends State<OnlinePage> {
         ),
         if (user.aiMatchScore.isNotEmpty)
           Positioned(
-            top: 70,
-            right: 12,
+            // top: 70,
+            // right: 12,
+            top: 98,
+            right:8,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.45), borderRadius: BorderRadius.circular(16)),
+              // decoration: BoxDecoration(color: Colors.black.withOpacity(0.45), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Colors.pinkAccent.withValues(alpha: 0.45), borderRadius: BorderRadius.circular(16)),
+
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1444,7 +1448,9 @@ class _OnlinePageState extends State<OnlinePage> {
     final child = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white, size: 22),
+        // Icon(icon, color: Colors.white, size: 22),
+        Icon(icon, color: Colors.white, size: 17),
+
         const SizedBox(height: 3),
         Text(count, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
       ],
@@ -1459,8 +1465,11 @@ class _OnlinePageState extends State<OnlinePage> {
       children: [
         SvgPicture.network(
           _webAsset(iconPath),
-          width: 22,
-          height: 22,
+          // width: 22,
+          // height: 22,
+
+          width: 15,
+          height: 15,
           placeholderBuilder: (_) => const Icon(Icons.circle, color: Colors.white, size: 18),
         ),
         const SizedBox(height: 3),

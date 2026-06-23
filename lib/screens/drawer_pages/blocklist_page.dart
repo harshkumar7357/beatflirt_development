@@ -446,7 +446,7 @@ class _BlocklistPageState extends State<BlocklistPage> {
 
   bool get _cardsLocked {
     if (!widget.enforceMembershipLock) return false;
-    return _membershipValue != 'Yes';
+    return _membershipValue == 'Yes';
   }
 
   @override
@@ -825,7 +825,8 @@ class _BlocklistPageState extends State<BlocklistPage> {
 
   Widget _header() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
        

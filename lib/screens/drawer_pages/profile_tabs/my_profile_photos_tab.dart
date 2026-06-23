@@ -324,7 +324,7 @@ class PhotosTabNotifier extends Notifier<PhotosTabState> {
       final response = await http.post(
         Uri.parse(deleteProfileImageUrl),
         headers: headers,
-        body: jsonEncode({'id': item.id}),
+        body: jsonEncode({'image_id': item.id}),
       );
 
       debugPrint('[PhotosTab] Delete response: ${response.body}');

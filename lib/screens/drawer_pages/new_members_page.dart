@@ -633,6 +633,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../membership_locked_card.dart';
+import '../../single_user_profile_screen.dart';
+import 'upgrade_page.dart';
 
 import '../../Api_services/api_service.dart';
 import '../../core/services/auth_services.dart';
@@ -685,12 +689,38 @@ class _NewMembersScreenState extends State<NewMembersScreen> {
   final Set<ProfileFilterType> _profileFilters = <ProfileFilterType>{};
 
   List<NewMember> _members = <NewMember>[];
+  String _membershipValue = '';
 
   @override
   void initState() {
     super.initState();
+    _loadMembership();
     _fetchMembers(reset: true);
     _scrollController.addListener(_onScroll);
+  }
+
+  Future<void> _loadMembership() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _membershipValue = prefs.getString('membership') ?? '';
+      });
+      final token = await AuthService.getToken();
+      if (token != null && token.isNotEmpty) {
+        final membershipData = await ApiService().checkLoginUserMembership(token: token);
+        final expire = membershipData['membership_expire']?.toString();
+        if (expire != null) {
+          if (mounted) {
+            setState(() {
+              _membershipValue = expire;
+            });
+          }
+          await prefs.setString('membership', expire);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading membership: $e');
+    }
   }
 
   @override
@@ -813,7 +843,7 @@ class _NewMembersScreenState extends State<NewMembersScreen> {
               text: 'New Members ',
               style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.w600),
               children: [
-                  TextSpan(text: '(${_totalCount  == 0 ? 70 : _totalCount})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  TextSpan(text: '(${_totalCount  == 0 ? 0 : _totalCount})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ],
             ),
         ),
@@ -865,8 +895,33 @@ class _NewMembersScreenState extends State<NewMembersScreen> {
                           childAspectRatio: _cardAspectRatio(width, columns),
                         ),
                         delegate: SliverChildBuilderDelegate(
-                          (context, index) =>
-                              NewMemberCard(member: _members[index]),
+                          (context, index) {
+                            if (BeatMembershipLock.isLocked(_membershipValue)) {
+                              return BeatMembershipLockedCard(
+                                onPurchase: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const UpgradePage(),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                             return GestureDetector(
+                               onTap: () {
+                                 Navigator.push(
+                                   context,
+                                   MaterialPageRoute(
+                                     builder: (_) => BeatSingleUserProfileScreen(
+                                       userId: _members[index].id,
+                                     ),
+                                   ),
+                                 );
+                               },
+                               child: NewMemberCard(member: _members[index]),
+                             );
+                          },
                           childCount: _members.length,
                         ),
                       );
@@ -1563,11 +1618,13 @@ class _StatItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      // padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 17),
+
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white),
+          Icon(icon, size: 19, color: Colors.white),
           const SizedBox(height: 5),
           Text(
             '$value',

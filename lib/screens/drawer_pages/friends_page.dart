@@ -287,6 +287,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
+import '../../single_user_profile_screen.dart';
 import 'upgrade_page.dart';
 
 const String _webBase = 'https://beatflirtevent.com/';
@@ -773,8 +774,17 @@ class _FriendsPageState extends State<FriendsPage> {
       widget.onOpenProfile!(context, user);
       return;
     }
-    final route = user.profileType == 'couple' ? '/couple-user-profile' : '/single-user-profile';
-    Navigator.pushNamed(context, route, arguments: {'user_id': _btoa(user.id)});
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BeatSingleUserProfileScreen(
+          userId: user.id,
+          accessToken: widget.accessToken,
+          accessSign: widget.accessSign,
+          loginUserId: _loginUserId,
+        ),
+      ),
+    );
   }
 
   Future<void> _openFilterSheet() async {
@@ -1335,8 +1345,11 @@ class _FriendsPageState extends State<FriendsPage> {
       children: [
         SvgPicture.network(
           _webAsset(iconPath),
-          width: 22,
-          height: 22,
+          // width: 22,
+          // height: 22,
+
+          width:15,
+          height: 15,
           placeholderBuilder: (_) => const Icon(Icons.circle, color: Colors.white, size: 18),
         ),
         const SizedBox(height: 3),
@@ -1447,18 +1460,18 @@ class _FriendsPageState extends State<FriendsPage> {
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xFF777777), fontSize: 16, height: 1.6),
           ),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: widget.onFindFriends ?? () => Navigator.pushNamed(context, '/online'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _maroon,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-            ),
-            icon: const Icon(Icons.search, size: 20),
-            label: const Text('Find Friends'),
-          ),
+          // const SizedBox(height: 30),
+          // ElevatedButton.icon(
+          //   onPressed: widget.onFindFriends ?? () => Navigator.pushNamed(context, '/online'),
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: _maroon,
+          //     foregroundColor: Colors.white,
+          //     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+          //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          //   ),
+          //   icon: const Icon(Icons.search, size: 20),
+          //   label: const Text('Find Friends'),
+          // ),
         ],
       ),
     );

@@ -484,8 +484,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final notifier = ref.read(registerProvider.notifier);
 
     return Scaffold(
-      body: Stack(
-        children: [
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
           // Background image
           Positioned.fill(
             child: Image.network(
@@ -538,6 +541,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           ),
         ],
       ),
+     ),
     );
   }
 

@@ -1841,7 +1841,8 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     final state = ref.watch(accountProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Account'),
+        title: const Text('My Account',style: TextStyle(fontSize: 22),),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               color: Colors.black, size: 20),
@@ -1895,9 +1896,9 @@ class _AccountPageState extends ConsumerState<AccountPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('My Account',
-              style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
+          // const Text('My Account',
+          //     style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700)),
+          // const SizedBox(height: 12),
           const Text('Email', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           TextField(

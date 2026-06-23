@@ -658,167 +658,170 @@ class _MyProfileLocationTabState extends ConsumerState<MyProfileLocationTab> {
     final state = ref.watch(locationTabProvider);
     final notifier = ref.read(locationTabProvider.notifier);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE8E0F2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Location Settings',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Auto-detect your location or search manually.',
-            style: TextStyle(color: Colors.grey[700]),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: state.isLoadingCurrent
-                      ? null
-                      : _fetchCurrentLocation,
-                  icon: state.isLoadingCurrent
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.my_location),
-                  label: Text(
-                    state.isLoadingCurrent
-                        ? 'Detecting...'
-                        : 'Use Current Location',
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE8E0F2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Location Settings',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Auto-detect your location or search manually.',
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: state.isLoadingCurrent
+                        ? null
+                        : _fetchCurrentLocation,
+                    icon: state.isLoadingCurrent
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.my_location),
+                    label: Text(
+                      state.isLoadingCurrent
+                          ? 'Detecting...'
+                          : 'Use Current Location',
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            onTapOutside: (_) {
-              FocusManager.instance.primaryFocus!.unfocus();
-            },
-            controller: _searchController,
-            textInputAction: TextInputAction.search,
-            onChanged: _onSearchChanged,
-            onSubmitted: _searchLocations,
-            decoration: InputDecoration(
-              hintText: 'Search location (city, area, address)',
-              suffixIcon: IconButton(
-                icon: state.isSearching
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.search),
-                onPressed: state.isSearching
-                    ? null
-                    : () => _searchLocations(_searchController.text),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE8E0F2)),
-              ),
+              ],
             ),
-          ),
-          const SizedBox(height: 10),
-          if (state.suggestions.isNotEmpty)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 220),
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFE8E0F2)),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: state.suggestions.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final item = state.suggestions[index];
-                  return Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      dense: true,
-                      leading: const Icon(Icons.location_on_outlined, size: 18),
-                      title: Text(
-                        item.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () {
-                        notifier.selectSuggestion(item);
-                        _searchController.text = item.name;
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          const SizedBox(height: 14),
-          _infoRow(Icons.place_outlined, 'Selected', state.selectedLocation),
-          _infoRow(
-            Icons.map_outlined,
-            'Coordinates',
-            state.selectedLat == null
-                ? '--'
-                : '${state.selectedLat!.toStringAsFixed(5)}, ${state.selectedLng!.toStringAsFixed(5)}',
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Match Distance: ${state.distanceKm.round()} km',
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          Slider(
-            value: state.distanceKm,
-            min: 5,
-            max: 200,
-            divisions: 39,
-            activeColor: const Color(0xFF220027),
-            onChanged: (v) => notifier.updateDistanceKm(v),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: SwitchListTile(
-              value: state.showOnlyNearby,
-              onChanged: (v) => notifier.updateShowOnlyNearby(v),
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Show only nearby matches'),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Location preferences updated')),
-                );
+            const SizedBox(height: 12),
+            TextField(
+              onTapOutside: (_) {
+                FocusManager.instance.primaryFocus!.unfocus();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF220027),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(22),
+              controller: _searchController,
+              textInputAction: TextInputAction.search,
+              onChanged: _onSearchChanged,
+              onSubmitted: _searchLocations,
+              decoration: InputDecoration(
+                hintText: 'Search location (city, area, address)',
+                suffixIcon: IconButton(
+                  icon: state.isSearching
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.search),
+                  onPressed: state.isSearching
+                      ? null
+                      : () => _searchLocations(_searchController.text),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFFE8E0F2)),
                 ),
               ),
-              child: const Text('Save Location'),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            if (state.suggestions.isNotEmpty)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 220),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFE8E0F2)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: state.suggestions.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final item = state.suggestions[index];
+                    return Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        dense: true,
+                        leading: const Icon(Icons.location_on_outlined, size: 18),
+                        title: Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () {
+                          notifier.selectSuggestion(item);
+                          _searchController.text = item.name;
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 14),
+            _infoRow(Icons.place_outlined, 'Selected', state.selectedLocation),
+            _infoRow(
+              Icons.map_outlined,
+              'Coordinates',
+              state.selectedLat == null
+                  ? '--'
+                  : '${state.selectedLat!.toStringAsFixed(5)}, ${state.selectedLng!.toStringAsFixed(5)}',
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Match Distance: ${state.distanceKm.round()} km',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            Slider(
+              value: state.distanceKm,
+              min: 5,
+              max: 200,
+              divisions: 39,
+              activeColor: const Color(0xFF220027),
+              onChanged: (v) => notifier.updateDistanceKm(v),
+            ),
+            Material(
+              color: Colors.transparent,
+              child: SwitchListTile(
+                value: state.showOnlyNearby,
+                onChanged: (v) => notifier.updateShowOnlyNearby(v),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Show only nearby matches'),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Location preferences updated')),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF220027),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                ),
+                child: const Text('Save Location'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

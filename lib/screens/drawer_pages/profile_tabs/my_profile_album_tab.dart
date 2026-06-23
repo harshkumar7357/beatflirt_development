@@ -1,3 +1,5 @@
+
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:beatflirt/Api_services/api_service.dart';
@@ -9,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Native Imports from BeatFlirt project structure
 import 'package:beatflirt/core/services/token_services.dart';
-
 
 // ==========================================
 // 1. DATA MODELS
@@ -112,7 +113,9 @@ class AlbumService {
         if (key.toLowerCase().contains('token')) {
           final val = prefs.get(key);
           if (val is String && val.trim().isNotEmpty) {
-            debugPrint('🔑 [AlbumService] Fallback token found in SharedPreferences [$key]: $val');
+            debugPrint(
+              '🔑 [AlbumService] Fallback token found in SharedPreferences [$key]: $val',
+            );
             return val;
           }
         }
@@ -121,14 +124,16 @@ class AlbumService {
       debugPrint('⚠️ [AlbumService] SharedPreferences lookup error: $e');
     }
 
-    debugPrint('❌ [AlbumService] Could not find any active authentication token!');
+    debugPrint(
+      '❌ [AlbumService] Could not find any active authentication token!',
+    );
     return null;
   }
 
   // Generates complete authorization header payload with custom tokens, signs, and session cookies
   Future<Map<String, String>> _getHeaders() async {
     final token = await _getToken();
-    
+
     // Core standard JSON headers
     final h = <String, String>{
       'Content-Type': 'application/json',
@@ -175,7 +180,9 @@ class AlbumService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse(url), headers: headers);
-      debugPrint('⬅️ [AlbumService GET] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService GET] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded['status'] == '200' && decoded['data'] is List) {
@@ -196,11 +203,15 @@ class AlbumService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse(url), headers: headers);
-      debugPrint('⬅️ [AlbumService Approved Images] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService Approved Images] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded['status'] == '200' && decoded['data'] is List) {
-          return (decoded['data'] as List).map((e) => e['image'].toString()).toList();
+          return (decoded['data'] as List)
+              .map((e) => e['image'].toString())
+              .toList();
         }
       }
     } catch (e) {
@@ -215,15 +226,43 @@ class AlbumService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(Uri.parse(url), headers: headers);
-      debugPrint('⬅️ [AlbumService Pending Images] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService Pending Images] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded['status'] == '200' && decoded['data'] is List) {
-          return (decoded['data'] as List).map((e) => e['image'].toString()).toList();
+          return (decoded['data'] as List)
+              .map((e) => e['image'].toString())
+              .toList();
         }
       }
     } catch (e) {
       debugPrint('❌ [AlbumService GET] Exception: $e');
+    }
+    return [];
+  }
+
+  // Get pending album images for a specific album (GET filtered)
+  Future<List<AlbumImageModel>> getPendingAlbumImages(String albumId) async {
+    final url = '$baseUrl/user/get_all_pending_album_image';
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse(url), headers: headers);
+      debugPrint(
+        '⬅️ [AlbumService Pending Images] Response (${response.statusCode}): ${response.body}',
+      );
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['status'] == '200' && decoded['data'] is List) {
+          return (decoded['data'] as List)
+              .map((item) => AlbumImageModel.fromJson(item))
+              .where((item) => item.albumId == albumId)
+              .toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [AlbumService GET Pending] Exception: $e');
     }
     return [];
   }
@@ -240,7 +279,9 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded['status'] == '200' && decoded['data'] is List) {
@@ -258,10 +299,7 @@ class AlbumService {
   // 5. Create profile album (POST - JSON payload)
   Future<bool> createProfileAlbum(String name, String password) async {
     final url = '$baseUrl/user/create_profile_album';
-    final payload = {
-      'album_name': name,
-      'album_password': password,
-    };
+    final payload = {'album_name': name, 'album_password': password};
     debugPrint('➡️ [AlbumService POST] URL: $url | Payload: $payload');
     try {
       final headers = await _getHeaders();
@@ -270,7 +308,9 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         return decoded['status'] == '200';
@@ -286,10 +326,12 @@ class AlbumService {
     final url = '$baseUrl/upload/imageuploadMultiple';
     final payload = {
       'image': [
-        {'image': base64Image}
-      ]
+        {'image': base64Image},
+      ],
     };
-    debugPrint('➡️ [AlbumService JSON POST] URL: $url | Payload snippet: ${jsonEncode(payload).substring(0, 100)}...');
+    debugPrint(
+      '➡️ [AlbumService JSON POST] URL: $url | Payload snippet: ${jsonEncode(payload).substring(0, 100)}...',
+    );
     try {
       final headers = await _getHeaders();
       final response = await http.post(
@@ -297,10 +339,14 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService JSON POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService JSON POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        if (decoded['status'] == '200' && decoded['data'] is List && decoded['data'].isNotEmpty) {
+        if (decoded['status'] == '200' &&
+            decoded['data'] is List &&
+            decoded['data'].isNotEmpty) {
           return decoded['data'][0]['image_name']?.toString();
         }
       }
@@ -313,10 +359,7 @@ class AlbumService {
   // Popup Action 2: Link image to album (POST - JSON payload)
   Future<bool> linkImageToAlbum(String imageName, String albumId) async {
     final url = '$baseUrl/user/single_user_mutiple_album_image';
-    final payload = {
-      'image': imageName,
-      'album_id': albumId,
-    };
+    final payload = {'image': imageName, 'album_id': albumId};
     debugPrint('➡️ [AlbumService POST] URL: $url | Payload: $payload');
     try {
       final headers = await _getHeaders();
@@ -325,7 +368,9 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         return decoded['status'] == '200';
@@ -348,7 +393,9 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded['status'] == '200' && decoded['data'] != null) {
@@ -369,10 +416,14 @@ class AlbumService {
       final request = http.MultipartRequest('POST', Uri.parse(url));
       final headers = await _getHeaders();
       headers.forEach((key, val) => request.headers[key] = val);
-      request.files.add(await http.MultipartFile.fromPath('video', videoFile.path));
+      request.files.add(
+        await http.MultipartFile.fromPath('video', videoFile.path),
+      );
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      debugPrint('⬅️ [AlbumService MULTIPART POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService MULTIPART POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded['status'] == '200' && decoded['data'] != null) {
@@ -386,7 +437,11 @@ class AlbumService {
   }
 
   // Popup Action 5: Update profile album (POST - JSON payload)
-  Future<bool> updateProfileAlbum(String albumId, String name, String password) async {
+  Future<bool> updateProfileAlbum(
+    String albumId,
+    String name,
+    String password,
+  ) async {
     final url = '$baseUrl/user/update_profile_album';
     final payload = {
       'album_id': albumId,
@@ -401,7 +456,9 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         return decoded['status'] == '200';
@@ -424,7 +481,9 @@ class AlbumService {
         headers: headers,
         body: jsonEncode(payload),
       );
-      debugPrint('⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '⬅️ [AlbumService POST] Response (${response.statusCode}): ${response.body}',
+      );
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         return decoded['status'] == '200';
@@ -433,6 +492,366 @@ class AlbumService {
       debugPrint('❌ [AlbumService POST] Exception: $e');
     }
     return false;
+  }
+}
+
+// ==========================================
+// 2B. ALBUM API SERVICE (beatflirtevent.com)
+// ==========================================
+
+class AlbumApiService {
+  static const String baseUrl = 'https://app.beatflirtevent.com/App';
+  final TokenService _tokenService = TokenService();
+
+  Future<String?> uploadImageMultiple(String base64Image) async {
+    final url = '$baseUrl/upload/imageuploadMultiple';
+    final payload = {
+      'image': [
+        {'image': base64Image},
+      ],
+    };
+    print('[AlbumApiService] POST base64 → $url');
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(payload),
+      );
+      print('[AlbumApiService] POST base64 ← status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['status'] == '200' &&
+            decoded['data'] is List &&
+            decoded['data'].isNotEmpty) {
+          return decoded['data'][0]['image_name']?.toString();
+        }
+      }
+    } catch (e) {
+      print('[AlbumApiService] POST base64 ✖ error: $e');
+    }
+    return null;
+  }
+
+  Future<bool> linkImageToAlbum(String imageName, String albumId) async {
+    final res = await singleUserMutipleAlbumImage(imageName, albumId);
+    return res['status']?.toString() == '200';
+  }
+
+  Future<String?> uploadVideo(File videoFile) async {
+    final res = await videoUpload(videoFile);
+    if (res['status']?.toString() == '200' && res['data'] != null) {
+      return res['data']['file_name']?.toString();
+    }
+    return null;
+  }
+
+  Future<List<AlbumImageModel>> getAlbumImages(String albumId) async {
+    final res = await getAlbumImage(albumId);
+    if (res['status']?.toString() == '200' && res['data'] is List) {
+      return (res['data'] as List).map((item) => AlbumImageModel.fromJson(item)).toList();
+    }
+    return [];
+  }
+
+  Future<List<AlbumImageModel>> getPendingAlbumImages(String albumId) async {
+    final res = await getAllPendingAlbumImage();
+    if (res['status']?.toString() == '200' && res['data'] is List) {
+      return (res['data'] as List)
+          .map((item) => AlbumImageModel.fromJson(item))
+          .where((item) => item.albumId == albumId)
+          .toList();
+    }
+    return [];
+  }
+
+  Future<AlbumDetailsModel?> getAlbumDetailsModel(String albumId) async {
+    final url = '$baseUrl/user/get_album_details';
+    print('[AlbumApiService] POST Details → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'album_id': albumId};
+      final response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(body),
+      );
+      print('[AlbumApiService] POST Details ← status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['status'] == '200' && decoded['data'] != null) {
+          return AlbumDetailsModel.fromJson(decoded['data']);
+        }
+      }
+    } catch (e) {
+      print('[AlbumApiService] POST Details ✖ error: $e');
+    }
+    return null;
+  }
+
+  Future<String?> _getToken() async {
+    try {
+      final token = await _tokenService.getAccessToken();
+      if (token != null && token.trim().isNotEmpty) return token;
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      for (final key in prefs.getKeys()) {
+        if (key.toLowerCase().contains('token')) {
+          final val = prefs.get(key);
+          if (val is String && val.trim().isNotEmpty) return val;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await _getToken();
+    final h = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (token != null && token.isNotEmpty) {
+      h['Authorization'] = 'Bearer $token';
+      h['access-token'] = token;
+      h['Access-Token'] = token;
+    }
+    try {
+      final sign = await _tokenService.getAccessSign();
+      if (sign != null && sign.isNotEmpty) {
+        h['Access-Sign'] = sign;
+        h['access-sign'] = sign;
+      }
+    } catch (_) {}
+    try {
+      final nativeHeaders = ApiService.buildAuthHeaders(token: token);
+      if (nativeHeaders.containsKey('Cookie')) {
+        h['Cookie'] = nativeHeaders['Cookie']!;
+      }
+    } catch (_) {}
+    return h;
+  }
+
+  // 1. GET ALL ALBUMS
+  Future<Map<String, dynamic>> getAllAlbum() async {
+    final url = '$baseUrl/user/get_all_album';
+    print('[AlbumApiService] GET → $url');
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse(url), headers: headers);
+      print('[AlbumApiService] GET ← status: ${res.statusCode}');
+      print('[AlbumApiService] GET ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] GET ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 2. GET ALL PENDING ALBUM IMAGES
+  Future<Map<String, dynamic>> getAllPendingAlbumImage() async {
+    final url = '$baseUrl/user/get_all_pending_album_image';
+    print('[AlbumApiService] GET → $url');
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse(url), headers: headers);
+      print('[AlbumApiService] GET ← status: ${res.statusCode}');
+      print('[AlbumApiService] GET ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] GET ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 3. GET ALL APPROVED ALBUM IMAGES
+  Future<Map<String, dynamic>> getAllApproveAlbumImage() async {
+    final url = '$baseUrl/user/get_all_approve_album_image';
+    print('[AlbumApiService] GET → $url');
+    try {
+      final headers = await _getHeaders();
+      final res = await http.get(Uri.parse(url), headers: headers);
+      print('[AlbumApiService] GET ← status: ${res.statusCode}');
+      print('[AlbumApiService] GET ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] GET ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 4. GET ALBUM DETAILS
+  Future<Map<String, dynamic>> getAlbumDetails(String albumId) async {
+    final url = '$baseUrl/user/get_album_details';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'album_id': albumId};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 5. CREATE PROFILE ALBUM
+  Future<Map<String, dynamic>> createProfileAlbum(String albumName, String albumPassword) async {
+    final url = '$baseUrl/user/create_profile_album';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'album_name': albumName, 'album_password': albumPassword};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'message': res.body};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 6. UPDATE PROFILE ALBUM
+  Future<Map<String, dynamic>> updateProfileAlbum(String albumName, String albumPassword, String albumId) async {
+    final url = '$baseUrl/user/update_profile_album';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'album_name': albumName, 'album_password': albumPassword, 'album_id': albumId};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'message': res.body};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 7. DELETE ALBUM
+  Future<Map<String, dynamic>> deleteAlbum(String albumId) async {
+    final url = '$baseUrl/user/delete_album';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'album_id': albumId};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'message': res.body};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 8. GET ALBUM IMAGES
+  Future<Map<String, dynamic>> getAlbumImage(String albumId) async {
+    final url = '$baseUrl/user/get_album_image';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'album_id': albumId};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 9. SAVE MULTIPLE IMAGES TO ALBUM
+  Future<Map<String, dynamic>> singleUserMutipleAlbumImage(String image, String albumId) async {
+    final url = '$baseUrl/user/single_user_mutiple_album_image';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'image': image, 'album_id': albumId};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'message': res.body};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // 10. UPLOAD PROFILE ALBUM VIDEO
+  Future<Map<String, dynamic>> uploadProfileAlbumVideo(String video, String albumId) async {
+    final url = '$baseUrl/user/upload_profile_album_video';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final headers = await _getHeaders();
+      final body = {'video': video, 'album_id': albumId};
+      final res = await http.post(Uri.parse(url), headers: headers, body: jsonEncode(body));
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'message': res.body};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // BONUS: IMAGE UPLOAD (2-step)
+  Future<Map<String, dynamic>> imageUploadMultiple(List<File> images) async {
+    final url = '$baseUrl/upload/imageuploadMultiple';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      final headers = await _getHeaders();
+      headers.forEach((key, val) => request.headers[key] = val);
+      for (final image in images) {
+        request.files.add(await http.MultipartFile.fromPath('image[]', image.path));
+      }
+      final streamedResponse = await request.send();
+      final res = await http.Response.fromStream(streamedResponse);
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
+  }
+
+  // BONUS: VIDEO UPLOAD (2-step)
+  Future<Map<String, dynamic>> videoUpload(File videoFile) async {
+    final url = '$baseUrl/upload/video_upload';
+    print('[AlbumApiService] POST → $url');
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      final headers = await _getHeaders();
+      headers.forEach((key, val) => request.headers[key] = val);
+      request.files.add(await http.MultipartFile.fromPath('video', videoFile.path));
+      final streamedResponse = await request.send();
+      final res = await http.Response.fromStream(streamedResponse);
+      print('[AlbumApiService] POST ← status: ${res.statusCode}');
+      print('[AlbumApiService] POST ← body: ${res.body}');
+      final decoded = jsonDecode(res.body);
+      return decoded is Map<String, dynamic> ? decoded : {'status': res.statusCode, 'data': decoded};
+    } catch (e) {
+      print('[AlbumApiService] POST ✖ error: $e');
+      return {'status': 500, 'message': e.toString()};
+    }
   }
 }
 
@@ -519,13 +938,12 @@ class AlbumService {
 //   );
 // });
 
-
 // ==========================================
 // 3. RIVERPOD PROVIDERS
 // ==========================================
 
-final albumServiceProvider = Provider<AlbumService>((ref) {
-  return AlbumService();
+final albumServiceProvider = Provider<AlbumApiService>((ref) {
+  return AlbumApiService();
 });
 
 // State provider replacement for Riverpod 3
@@ -545,33 +963,57 @@ final albumTabProvider = NotifierProvider<AlbumTabNotifier, bool>(
   AlbumTabNotifier.new,
 );
 
+class SelectedAlbumNotifier extends Notifier<AlbumModel?> {
+  @override
+  AlbumModel? build() {
+    return null;
+  }
+
+  void select(AlbumModel? album) {
+    state = album;
+  }
+}
+
+final selectedAlbumProvider =
+    NotifierProvider<SelectedAlbumNotifier, AlbumModel?>(
+      SelectedAlbumNotifier.new,
+    );
+
 class AlbumsNotifier extends AsyncNotifier<List<AlbumModel>> {
-  AlbumService get _service => ref.read(albumServiceProvider);
+  AlbumApiService get _service => ref.read(albumServiceProvider);
 
   @override
   Future<List<AlbumModel>> build() async {
-    return _service.getAllAlbums();
+    return _fetchAllFromApi();
   }
 
   Future<void> fetchAlbums() async {
     state = const AsyncValue.loading();
-
     try {
-      final list = await _service.getAllAlbums();
+      final list = await _fetchAllFromApi();
       state = AsyncValue.data(list);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
 
+  Future<List<AlbumModel>> _fetchAllFromApi() async {
+    final res = await _service.getAllAlbum();
+    if (res['status']?.toString() == '200' && res['data'] is List) {
+      return (res['data'] as List)
+          .map((item) => AlbumModel.fromJson(item))
+          .toList();
+    }
+    return [];
+  }
+
   Future<bool> createAlbum(String name, String password) async {
     try {
-      final success = await _service.createProfileAlbum(name, password);
-
+      final res = await _service.createProfileAlbum(name, password);
+      final success = res['status']?.toString() == '200';
       if (success) {
         await fetchAlbums();
       }
-
       return success;
     } catch (e) {
       return false;
@@ -580,12 +1022,11 @@ class AlbumsNotifier extends AsyncNotifier<List<AlbumModel>> {
 
   Future<bool> updateAlbum(String id, String name, String password) async {
     try {
-      final success = await _service.updateProfileAlbum(id, name, password);
-
+      final res = await _service.updateProfileAlbum(name, password, id);
+      final success = res['status']?.toString() == '200';
       if (success) {
         await fetchAlbums();
       }
-
       return success;
     } catch (e) {
       return false;
@@ -594,12 +1035,11 @@ class AlbumsNotifier extends AsyncNotifier<List<AlbumModel>> {
 
   Future<bool> deleteAlbum(String id) async {
     try {
-      final success = await _service.deleteAlbum(id);
-
+      final res = await _service.deleteAlbum(id);
+      final success = res['status']?.toString() == '200';
       if (success) {
         await fetchAlbums();
       }
-
       return success;
     } catch (e) {
       return false;
@@ -643,6 +1083,7 @@ class MyProfileAlbumTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final showApproved = ref.watch(albumTabProvider);
     final albumsState = ref.watch(albumsProvider);
+    final selectedAlbum = ref.watch(selectedAlbumProvider);
 
     final approvedItems = ref.watch(approvedAlbumsProvider);
     final pendingItems = ref.watch(pendingAlbumsProvider);
@@ -653,146 +1094,290 @@ class MyProfileAlbumTab extends ConsumerWidget {
     final isCompact = width < 380;
     final cardWidth = isCompact ? width - 48 : 220.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Status toggle tabs (Approved / Pending)
-        _buildStatusTabs(context, ref, showApproved),
-        const SizedBox(height: 16),
+    if (selectedAlbum != null) {
+      return _buildAlbumDetailsView(context, ref, selectedAlbum);
+    }
 
-        // Quality Info Strip
-        if (showApproved) ...[
-          _buildInfoStrip(),
-          const SizedBox(height: 16),
-        ],
+    return RefreshIndicator(
+      onRefresh: () => ref.read(albumsProvider.notifier).fetchAlbums(),
+      color: Colors.pink,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status toggle tabs (Approved / Pending)
+            _buildStatusTabs(context, ref, showApproved),
+            const SizedBox(height: 16),
 
-        // Section Title & Action
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your Private\nAlbums',
-                style: TextStyle(
-                  fontSize: isCompact ? 26 : 30,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF19001F),
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: () => _showAddAlbumDialog(context, ref),
-                icon: const Icon(Icons.create_new_folder_outlined, size: 18),
-                label: const Text(
-                  'Create Album',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF220027),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-              ),
+            // Quality Info Strip
+            if (showApproved) ...[
+              _buildInfoStrip(),
+              const SizedBox(height: 16),
             ],
-          ),
-        ),
-        const SizedBox(height: 20),
 
-        // Albums list or state rendering
-        albumsState.when(
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40.0),
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF2D87)),
+            // Section Title & Action
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Your Private\nAlbums',
+                    style: TextStyle(
+                      fontSize: isCompact ? 26 : 30,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF19001F),
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddAlbumDialog(context, ref),
+                    icon: const Icon(
+                      Icons.create_new_folder_outlined,
+                      size: 18,
+                    ),
+                    label: const Text(
+                      'Create Album',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF220027),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
+            const SizedBox(height: 20),
+
+            // Albums list or state rendering
+            albumsState.when(
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFFFF2D87),
+                    ),
+                  ),
+                ),
+              ),
+              error: (error, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 40,
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Error loading albums: $error'),
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(albumsProvider.notifier).fetchAlbums(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              data: (_) {
+                if (currentList.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 48.0),
+                      child: Text(
+                        showApproved
+                            ? 'No approved albums found.'
+                            : 'No pending albums found.',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      ),
+                    ),
+                  );
+                }
+
+                return Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: currentList
+                      .map(
+                        (item) =>
+                            _buildAlbumCard(context, ref, item, cardWidth),
+                      )
+                      .toList(),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlbumDetailsView(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel album,
+  ) {
+    final showApproved = ref.watch(albumTabProvider);
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status toggle tabs (Approved / Pending) - exactly below main tab bar like Screenshot 2
+          _buildStatusTabs(context, ref, showApproved),
+          const SizedBox(height: 16),
+
+          // Back button
+          InkWell(
+            onTap: () => ref.read(selectedAlbumProvider.notifier).select(null),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 40),
-                  const SizedBox(height: 10),
-                  Text('Error loading albums: $error'),
-                  TextButton(
-                    onPressed: () => ref.read(albumsProvider.notifier).fetchAlbums(),
-                    child: const Text('Retry'),
+                  Icon(Icons.chevron_left, color: Colors.black87, size: 24),
+                  SizedBox(width: 4),
+                  Text(
+                    'Go Back',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          data: (_) {
-            if (currentList.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 48.0),
-                  child: Text(
-                    showApproved ? 'No approved albums found.' : 'No pending albums found.',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                  ),
-                ),
-              );
-            }
+          const SizedBox(height: 20),
 
-            return Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: currentList
-                  .map((item) => _buildAlbumCard(context, ref, item, cardWidth))
-                  .toList(),
-            );
-          },
-        ),
-      ],
+          // Fetch images
+          FutureBuilder<List<AlbumImageModel>>(
+            future: showApproved
+                ? ref.read(albumServiceProvider).getAlbumImages(album.id)
+                : ref
+                      .read(albumServiceProvider)
+                      .getPendingAlbumImages(album.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFFFF2D87),
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              final images = snapshot.data ?? [];
+
+              if (images.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 80.0),
+                    child: Text(
+                      'No Record Found.....',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      images[index].image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey[800],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.white38,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
-
-Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) {
-  return Container(
-    height: 44,
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(22),
-      gradient: const LinearGradient(
-        colors: [Color(0xFF19001F), Color(0xFF490040)],
+  Widget _buildStatusTabs(
+    BuildContext context,
+    WidgetRef ref,
+    bool showApproved,
+  ) {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF19001F), Color(0xFF490040)],
+        ),
       ),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: _buildPillTab(
-            label: 'Approved',
-            selected: showApproved,
-            onTap: () {
-              ref.read(albumTabProvider.notifier).setShowApproved(true);
-            },
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildPillTab(
+              label: 'Approved',
+              selected: showApproved,
+              onTap: () {
+                ref.read(albumTabProvider.notifier).setShowApproved(true);
+              },
+            ),
           ),
-        ),
-        Expanded(
-          child: _buildPillTab(
-            label: 'Pending',
-            selected: !showApproved,
-            onTap: () {
-              ref.read(albumTabProvider.notifier).setShowApproved(false);
-            },
+          Expanded(
+            child: _buildPillTab(
+              label: 'Pending',
+              selected: !showApproved,
+              onTap: () {
+                ref.read(albumTabProvider.notifier).setShowApproved(false);
+              },
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
   // // Approved vs Pending toggle
   // Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) {
   //   return Container(
@@ -886,97 +1471,113 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
     AlbumModel item,
     double cardWidth,
   ) {
-    return Container(
-      width: cardWidth,
-      height: 250,
-      decoration: BoxDecoration(
-        color: const Color(0xFF2E3539), // Slate grey background
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Card Header: Title & Edit pencil
-          Container(
-            height: 42,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF19001F), Color(0xFF490040)],
+    return GestureDetector(
+      onTap: () {
+        ref.read(selectedAlbumProvider.notifier).select(item);
+      },
+      child: Container(
+        width: cardWidth,
+        height: 250,
+        decoration: BoxDecoration(
+          color: const Color(0xFF2E3539), // Slate grey background
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Card Header: Title & Edit pencil
+            Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF19001F), Color(0xFF490040)],
+                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item.albumName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTapDown: (details) => _showCardPopupMenu(context, ref, item, details.globalPosition),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Card Body: Centered Private Lock Icon
-          Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Row(
                 children: [
-                  Icon(
-                    Icons.lock_outline,
-                    size: 64,
-                    color: Colors.white.withOpacity(0.4),
-                  ),
-                  if (item.status != '1') ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF2D87).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: const Color(0xFFFF2D87), width: 0.5),
-                      ),
-                      child: const Text(
-                        'PENDING',
-                        style: TextStyle(
-                          color: Color(0xFFFF2D87),
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Expanded(
+                    child: Text(
+                      item.albumName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
+                  ),
+                  GestureDetector(
+                    onTapDown: (details) => _showCardPopupMenu(
+                      context,
+                      ref,
+                      item,
+                      details.globalPosition,
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4.0),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            // Card Body: Centered Private Lock Icon
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      size: 64,
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                    if (item.status != '1') ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF2D87).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: const Color(0xFFFF2D87),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: const Text(
+                          'PENDING',
+                          style: TextStyle(
+                            color: Color(0xFFFF2D87),
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -990,7 +1591,12 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
   ) async {
     final result = await showMenu<String>(
       context: context,
-      position: RelativeRect.fromLTRB(position.dx - 100, position.dy, position.dx, position.dy + 100),
+      position: RelativeRect.fromLTRB(
+        position.dx - 100,
+        position.dy,
+        position.dx,
+        position.dy + 100,
+      ),
       color: Colors.white,
       elevation: 8,
       shape: RoundedRectangleBorder(
@@ -1000,23 +1606,41 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
       items: [
         const PopupMenuItem<String>(
           value: 'add_photo',
-          child: Text('Add Photo', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+          child: Text(
+            'Add Photo',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
+          ),
         ),
         const PopupMenuItem<String>(
           value: 'add_video',
-          child: Text('Add Video', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+          child: Text(
+            'Add Video',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
+          ),
         ),
         const PopupMenuItem<String>(
           value: 'name_password',
-          child: Text('Name & Password', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+          child: Text(
+            'Name & Password',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
+          ),
         ),
         const PopupMenuItem<String>(
           value: 'view',
-          child: Text('View', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500)),
+          child: Text(
+            'View',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
+          ),
         ),
         const PopupMenuItem<String>(
           value: 'delete',
-          child: Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500)),
+          child: Text(
+            'Delete',
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
@@ -1047,7 +1671,11 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
   // ==========================================
 
   // Add Photo: Picker -> Base64 -> Multiple Image Upload -> Link to Album ID -> Refetch
-  Future<void> _handlePopupAddPhoto(BuildContext context, WidgetRef ref, AlbumModel item) async {
+  Future<void> _handlePopupAddPhoto(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel item,
+  ) async {
     final source = await _chooseMediaSource(context, isVideo: false);
     if (source == null) return;
 
@@ -1072,27 +1700,39 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
 
       if (imageName != null) {
         final success = await service.linkImageToAlbum(imageName, item.id);
-        navigator.pop(); // Dismiss loader safely using captured navigator reference
+        navigator
+            .pop(); // Dismiss loader safely using captured navigator reference
 
         if (success) {
-          _showSnackBar(context, 'Photo uploaded and linked to album successfully.');
+          _showSnackBar(
+            context,
+            'Photo uploaded and linked to album successfully.',
+          );
           ref.read(albumsProvider.notifier).fetchAlbums();
         } else {
           _showSnackBar(context, 'Photo uploaded but link failed.');
         }
       } else {
-        navigator.pop(); // Dismiss loader safely using captured navigator reference
+        navigator
+            .pop(); // Dismiss loader safely using captured navigator reference
         _showSnackBar(context, 'Failed to upload photo.');
       }
     } catch (e) {
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
       _showSnackBar(context, 'Error uploading photo: $e');
     }
   }
 
   // Add Video: Pick -> Multipart Video Upload -> Refetch
-  Future<void> _handlePopupAddVideo(BuildContext context, WidgetRef ref, AlbumModel item) async {
-    final pickedFile = await ImagePicker().pickVideo(source: ImageSource.gallery);
+  Future<void> _handlePopupAddVideo(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel item,
+  ) async {
+    final pickedFile = await ImagePicker().pickVideo(
+      source: ImageSource.gallery,
+    );
     if (pickedFile == null) return;
 
     final navigator = Navigator.of(context);
@@ -1101,7 +1741,8 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
     try {
       final service = ref.read(albumServiceProvider);
       final fileName = await service.uploadVideo(File(pickedFile.path));
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
 
       if (fileName != null) {
         _showSnackBar(context, 'Video uploaded successfully.');
@@ -1110,20 +1751,26 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
         _showSnackBar(context, 'Failed to upload video.');
       }
     } catch (e) {
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
       _showSnackBar(context, 'Error uploading video: $e');
     }
   }
 
   // Name & Password: Fetch details -> Prefill custom Dialog -> Update -> Refetch
-  Future<void> _handlePopupNamePassword(BuildContext context, WidgetRef ref, AlbumModel item) async {
+  Future<void> _handlePopupNamePassword(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel item,
+  ) async {
     final navigator = Navigator.of(context);
     _showLoadingOverlay(context);
 
     try {
       final service = ref.read(albumServiceProvider);
-      final details = await service.getAlbumDetails(item.id);
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      final details = await service.getAlbumDetailsModel(item.id);
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
 
       if (details != null) {
         _showAddAlbumDialog(context, ref, editDetails: details);
@@ -1131,20 +1778,26 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
         _showSnackBar(context, 'Failed to load album details.');
       }
     } catch (e) {
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
       _showSnackBar(context, 'Error: $e');
     }
   }
 
   // View: Fetch images for this album -> Render elegant bottom sheet
-  Future<void> _handlePopupView(BuildContext context, WidgetRef ref, AlbumModel item) async {
+  Future<void> _handlePopupView(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel item,
+  ) async {
     final navigator = Navigator.of(context);
     _showLoadingOverlay(context);
 
     try {
       final service = ref.read(albumServiceProvider);
       final images = await service.getAlbumImages(item.id);
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
 
       if (images.isEmpty) {
         _showSnackBar(context, 'No images found in this album.');
@@ -1179,18 +1832,23 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                     padding: EdgeInsets.all(16.0),
                     child: Text(
                       'Album Photos',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Expanded(
                     child: GridView.builder(
                       controller: scrollController,
                       padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
                       itemCount: images.length,
                       itemBuilder: (context, index) {
                         return ClipRRect(
@@ -1200,7 +1858,10 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: Colors.grey[800],
-                              child: const Icon(Icons.image_not_supported, color: Colors.white38),
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white38,
+                              ),
                             ),
                           ),
                         );
@@ -1214,19 +1875,26 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
         },
       );
     } catch (e) {
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
       _showSnackBar(context, 'Error retrieving images: $e');
     }
   }
 
   // Delete Album: Confirms -> Deletes -> Refetch
-  Future<void> _handlePopupDelete(BuildContext context, WidgetRef ref, AlbumModel item) async {
+  Future<void> _handlePopupDelete(
+    BuildContext context,
+    WidgetRef ref,
+    AlbumModel item,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Album'),
-          content: Text('Are you sure you want to delete the album "${item.albumName}"?'),
+          content: Text(
+            'Are you sure you want to delete the album "${item.albumName}"?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -1234,8 +1902,13 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+              ),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -1248,8 +1921,11 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
     _showLoadingOverlay(context);
 
     try {
-      final success = await ref.read(albumsProvider.notifier).deleteAlbum(item.id);
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      final success = await ref
+          .read(albumsProvider.notifier)
+          .deleteAlbum(item.id);
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
 
       if (success) {
         _showSnackBar(context, 'Album deleted successfully.');
@@ -1257,7 +1933,8 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
         _showSnackBar(context, 'Failed to delete album.');
       }
     } catch (e) {
-      navigator.pop(); // Dismiss loader safely using captured navigator reference
+      navigator
+          .pop(); // Dismiss loader safely using captured navigator reference
       _showSnackBar(context, 'Error deleting album: $e');
     }
   }
@@ -1266,7 +1943,10 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
   // 6. HELPER OVERLAYS AND DIALOGS
   // ==========================================
 
-  Future<ImageSource?> _chooseMediaSource(BuildContext context, {required bool isVideo}) async {
+  Future<ImageSource?> _chooseMediaSource(
+    BuildContext context, {
+    required bool isVideo,
+  }) async {
     return showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) {
@@ -1310,8 +1990,12 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
     WidgetRef ref, {
     AlbumDetailsModel? editDetails,
   }) {
-    final nameController = TextEditingController(text: editDetails?.albumName ?? '');
-    final passwordController = TextEditingController(text: editDetails?.albumPassword ?? '');
+    final nameController = TextEditingController(
+      text: editDetails?.albumName ?? '',
+    );
+    final passwordController = TextEditingController(
+      text: editDetails?.albumPassword ?? '',
+    );
     final isEditing = editDetails != null;
 
     showDialog(
@@ -1323,7 +2007,9 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1337,11 +2023,17 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                         gradient: LinearGradient(
                           colors: [Color(0xFF19001F), Color(0xFF490040)],
                         ),
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.create_new_folder_outlined, color: Colors.white, size: 22),
+                          const Icon(
+                            Icons.create_new_folder_outlined,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             isEditing ? 'Edit Album' : 'Add Album',
@@ -1355,7 +2047,11 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                           if (!isLoading)
                             IconButton(
                               onPressed: () => Navigator.pop(dialogContext),
-                              icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                             ),
@@ -1385,14 +2081,21 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                               hintText: 'Enter album name',
                               fillColor: const Color(0xFFF2F4F7),
                               filled: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                             ),
                           ),
@@ -1409,19 +2112,27 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                           TextField(
                             controller: passwordController,
                             enabled: !isLoading,
-                            obscureText: false, // Visible text matching screenshot
+                            obscureText:
+                                false, // Visible text matching screenshot
                             decoration: InputDecoration(
                               hintText: 'Enter password',
                               fillColor: const Color(0xFFF2F4F7),
                               filled: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                             ),
                           ),
@@ -1433,19 +2144,27 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                             children: [
                               if (isLoading)
                                 const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 24.0),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 24.0,
+                                  ),
                                   child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF2D87)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFFFF2D87),
+                                    ),
                                   ),
                                 )
                               else
                                 ElevatedButton(
                                   onPressed: () async {
                                     final name = nameController.text.trim();
-                                    final password = passwordController.text.trim();
+                                    final password = passwordController.text
+                                        .trim();
 
                                     if (name.isEmpty || password.isEmpty) {
-                                      _showSnackBar(dialogContext, 'Please enter both name and password.');
+                                      _showSnackBar(
+                                        dialogContext,
+                                        'Please enter both name and password.',
+                                      );
                                       return;
                                     }
 
@@ -1458,7 +2177,11 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                                       if (isEditing) {
                                         success = await ref
                                             .read(albumsProvider.notifier)
-                                            .updateAlbum(editDetails.id, name, password);
+                                            .updateAlbum(
+                                              editDetails.id,
+                                              name,
+                                              password,
+                                            );
                                       } else {
                                         success = await ref
                                             .read(albumsProvider.notifier)
@@ -1469,7 +2192,9 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                                     }
 
                                     if (success) {
-                                      Navigator.pop(dialogContext); // Safely close the dialog
+                                      Navigator.pop(
+                                        dialogContext,
+                                      ); // Safely close the dialog
                                       _showSnackBar(
                                         context, // Show on parent context safely
                                         isEditing
@@ -1480,7 +2205,10 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                                       setState(() {
                                         isLoading = false;
                                       });
-                                      _showSnackBar(dialogContext, 'Failed to save album.');
+                                      _showSnackBar(
+                                        dialogContext,
+                                        'Failed to save album.',
+                                      );
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -1496,7 +2224,10 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
                                   ),
                                   child: const Text(
                                     'Save',
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -1516,10 +2247,7 @@ Widget _buildStatusTabs(BuildContext context, WidgetRef ref, bool showApproved) 
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 3),
-      ),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
     );
   }
 }

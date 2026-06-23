@@ -1976,6 +1976,92 @@ class ApiService {
   }
 
   // ═══════════════════════════════════════════════════════════════════
+  // GET ALL SHORT NOTIFICATIONS
+  // ═══════════════════════════════════════════════════════════════════
+
+  Future<List<NotificationModel>> getShortNotifications({
+    required String? token,
+  }) async {
+    if (token == null || token.trim().isEmpty) {
+      debugPrint('🔴 TOKEN IS NULL OR EMPTY');
+      throw Exception('Authentication token is missing. Please log in again.');
+    }
+
+    final uri = Uri.parse('$_baseUrl/App/notification/get_all_short_notification');
+    debugPrint('🔵 SHORT NOTIFICATION REQUEST → $uri');
+    debugPrint('🔵 HEADERS → ${_buildHeaders(token: token)}');
+
+    final response = await http.post(
+      uri,
+      headers: _buildHeaders(token: token),
+      body: jsonEncode({'notification_type': 'short'}),
+    );
+
+    final Map<String, dynamic> body =
+        jsonDecode(response.body) as Map<String, dynamic>;
+
+    // ✅ CHECK TOKEN EXPIRY
+    _maybeHandleAuthExpiry(response, body);
+
+    debugPrint('🟢 SHORT NOTIFICATION RESPONSE CODE → ${response.statusCode}');
+    debugPrint(
+      '🟢 SHORT NOTIFICATION RESPONSE BODY → '
+      '${const JsonEncoder.withIndent("  ").convert(body)}',
+    );
+
+    final apiStatus = body['status']?.toString() ?? '';
+    if (response.statusCode == 200 && apiStatus == '200') {
+      final dataList = body['data'] as List<dynamic>? ?? [];
+      debugPrint('🟢 SHORT NOTIFICATION COUNT → ${dataList.length}');
+      return dataList
+          .map(
+            (item) => NotificationModel.fromJson(item as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    throw Exception(body['message'] ?? 'Failed to load short notifications');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SEARCH MEMBERS
+  // ═══════════════════════════════════════════════════════════════════
+
+  Future<List<dynamic>> searchMembers({
+    required String? token,
+    required String keyword,
+  }) async {
+    if (token == null || token.trim().isEmpty) {
+      throw Exception('Authentication token is missing. Please log in again.');
+    }
+
+    final uri = Uri.parse('$_baseUrl/App/online/get_all_search_user');
+    debugPrint('🔵 SEARCH MEMBERS REQUEST → $uri');
+
+    final response = await http.post(
+      uri,
+      headers: _buildHeaders(token: token),
+      body: jsonEncode({'search_keyword': keyword}),
+    );
+
+    final Map<String, dynamic> body =
+        jsonDecode(response.body) as Map<String, dynamic>;
+
+    _maybeHandleAuthExpiry(response, body);
+
+    debugPrint('🟢 SEARCH MEMBERS RESPONSE CODE → ${response.statusCode}');
+    
+    final apiStatus = body['status']?.toString() ?? '';
+    if (apiStatus == '200') {
+      return body['data'] as List<dynamic>? ?? [];
+    } else if (apiStatus == '404') {
+      return [];
+    }
+
+    throw Exception(body['message'] ?? 'Search failed');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
   // LOGOUT
   // ═══════════════════════════════════════════════════════════════════
 

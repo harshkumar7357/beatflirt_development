@@ -2549,12 +2549,10 @@ class AppDrawer extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
               Navigator.pop(dialogContext);
-              Navigator.pop(context);
               await AuthService.logout();
-              if (!context.mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
+              navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const LoginPage()),
                 (route) => false,
               );

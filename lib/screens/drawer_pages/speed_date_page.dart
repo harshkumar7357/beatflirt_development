@@ -2303,6 +2303,7 @@
 // AndroidManifest.xml:
 //   <uses-permission android:name="android.permission.INTERNET" />
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:beatflirt/single_user_profile_screen.dart';
@@ -2682,12 +2683,27 @@ class _SpeedDatePageState extends State<SpeedDatePage> {
   String _selectedHour = '';
   String _selectedMinute = '';
   final Set<String> _postTypes = <String>{'couple_male_female_swingers'};
+  Timer? _locationDebounce;
+  List<dynamic> _locationSuggestions = <dynamic>[];
+  bool _isSearchingLocation = false;
+  final _postLocationFocusNode = FocusNode();
 
   bool get _cardsLocked => widget.enforceMembershipLock && _membershipValue == 'Yes';
 
   @override
   void initState() {
     super.initState();
+    _postLocationFocusNode.addListener(() {
+      if (!_postLocationFocusNode.hasFocus) {
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) {
+            setState(() {
+              _locationSuggestions = <dynamic>[];
+            });
+          }
+        });
+      }
+    });
     _bootstrap();
   }
 
@@ -2697,6 +2713,8 @@ class _SpeedDatePageState extends State<SpeedDatePage> {
     _postDetailsController.dispose();
     _filterSearchController.dispose();
     _filterLocationController.dispose();
+    _locationDebounce?.cancel();
+    _postLocationFocusNode.dispose();
     super.dispose();
   }
 
@@ -3029,6 +3047,44 @@ class _SpeedDatePageState extends State<SpeedDatePage> {
     }
   }
 
+  Future<void> _fetchLocationSuggestions(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        _locationSuggestions = <dynamic>[];
+      });
+      return;
+    }
+    setState(() {
+      _isSearchingLocation = true;
+    });
+    try {
+      final url = Uri.parse('https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}&format=json&limit=5');
+      debugPrint('Nominatim request URL: $url');
+      final response = await http.get(url, headers: {
+        'User-Agent': 'BeatFlirtApp/1.0',
+        'Accept': 'application/json',
+      });
+      debugPrint('Nominatim status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          setState(() {
+            _locationSuggestions = data;
+          });
+          debugPrint('Fetched ${_locationSuggestions.length} suggestions');
+        }
+      } else {
+        debugPrint('Nominatim error response: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching suggestions: $e');
+    } finally {
+      setState(() {
+        _isSearchingLocation = false;
+      });
+    }
+  }
+
   Future<void> _deleteSpeedDate(SpeedDateItem item) async {
     final api = _api;
     if (api == null) return;
@@ -3167,9 +3223,12 @@ class _SpeedDatePageState extends State<SpeedDatePage> {
         ),
       ),
       backgroundColor: _lightBg,
-      body: SafeArea(
-        child: Stack(
-          children: [
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: SafeArea(
+          child: Stack(
+            children: [
             RefreshIndicator(
               onRefresh: () => _tabIndex == 0 ? Future.value() : _loadSpeedDates(),
               color: _maroon,
@@ -3208,6 +3267,7 @@ class _SpeedDatePageState extends State<SpeedDatePage> {
           ],
         ),
       ),
+     ),
     );
   }
 
@@ -3332,8 +3392,85 @@ class _SpeedDatePageState extends State<SpeedDatePage> {
             _requiredLabel('Where'),
             TextField(
               controller: _postLocationController,
+              focusNode: _postLocationFocusNode,
               decoration: _inputDecoration('Enter Location'),
+              onChanged: (val) {
+                if (_locationDebounce?.isActive ?? false) _locationDebounce!.cancel();
+                _locationDebounce = Timer(const Duration(milliseconds: 500), () {
+                  _fetchLocationSuggestions(val);
+                });
+              },
             ),
+            if (_isSearchingLocation)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: _maroon),
+                  ),
+                ),
+              ),
+            if (_locationSuggestions.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: _locationSuggestions.map<Widget>((suggestion) {
+                        final displayName = suggestion['display_name'] ?? '';
+                        final parts = displayName.split(',');
+                        final mainText = parts.first.trim();
+                        final secondaryText = parts.length > 1 ? parts.sublist(1).join(',').trim() : '';
+                        
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              dense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              title: Text(
+                                mainText,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                              ),
+                              subtitle: secondaryText.isNotEmpty
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        secondaryText,
+                                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                                setState(() {
+                                  _postLocationController.text = displayName;
+                                  _postLat = suggestion['lat']?.toString() ?? '';
+                                  _postLng = suggestion['lon']?.toString() ?? '';
+                                  _locationSuggestions = <dynamic>[];
+                                });
+                              },
+                            ),
+                            if (suggestion != _locationSuggestions.last)
+                              const Divider(height: 1, thickness: 1, indent: 16, endIndent: 16),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ),
           ],
           const SizedBox(height: 18),
           _requiredLabel('Details'),

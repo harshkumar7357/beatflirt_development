@@ -667,7 +667,7 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
       borderRadius: BorderRadius.circular(5),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5)),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5),border: Border.all(color: Colors.white, width: 1)),
         child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
       ),
     );
@@ -692,8 +692,10 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
       children: [
         SvgPicture.network(
           _webAsset(iconPath),
-          width: 21,
-          height: 21,
+          // width: 21,
+          // height: 21,
+          width: 15,
+          height: 15,
           placeholderBuilder: (_) => const Icon(Icons.circle, size: 16, color: Colors.white),
         ),
         const SizedBox(height: 3),
@@ -840,7 +842,7 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
             child: const Icon(Icons.person_off_outlined, size: 62, color: _maroon),
           ),
           const SizedBox(height: 25),
-          const Text('No New Friend Requests', style: TextStyle(color: _primary, fontWeight: FontWeight.w600, fontSize: 24)),
+          Padding(padding: EdgeInsets.all(14),child:  Text('No New Friend Requests', style: TextStyle(color: _primary, fontWeight: FontWeight.w600, fontSize: 24))),
           const SizedBox(height: 10),
           const Text(
             "It looks like you don't have any incoming friend requests at the moment. Why not explore and find some interesting people?",
@@ -866,10 +868,10 @@ class _FriendRequestsPageState extends State<FriendRequestsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Blastergate Team!', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+              const Text('Beat Flirt Team!', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               const Text(
-                '"You have not purchased a Blastergate membership plan. Buy membership"',
+                '"You have not purchased a Beat Flirt membership plan. Buy membership"',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 15),
               ),

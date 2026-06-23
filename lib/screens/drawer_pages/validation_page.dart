@@ -2159,7 +2159,7 @@ class _ValidationPageState extends State<ValidationPage> {
 
   bool get _cardsLocked {
     if (!widget.enforceMembershipLock) return false;
-    return _membershipValue != 'Yes';
+    return _membershipValue == 'Yes';
   }
 
   @override
@@ -3253,7 +3253,7 @@ class _ValidationPageState extends State<ValidationPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Blastergate Team!',
+                  'Beat Flirt Team!',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -3262,7 +3262,7 @@ class _ValidationPageState extends State<ValidationPage> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  '"You have not purchased a Blastergate membership plan. Buy membership"',
+                  '"You have not purchased a Beat Flirt membership plan. Buy membership"',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,

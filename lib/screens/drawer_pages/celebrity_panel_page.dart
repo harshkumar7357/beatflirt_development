@@ -12866,6 +12866,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../../membership_locked_card.dart';
+import 'upgrade_page.dart';
+import '../../Api_services/api_service.dart';
+import '../../core/services/auth_services.dart';
+
 // ════════════════════════════════════════════════════════════════════
 // 1) API CONSTANTS
 // ════════════════════════════════════════════════════════════════════
@@ -13435,12 +13440,43 @@ class _CelebrityPanelPageState extends ConsumerState<CelebrityPanelPage>
   final TextEditingController _searchCtrl = TextEditingController();
 
   bool _filterExpanded = false;
+  String _membershipValue = '';
 
   static const _bg = Color(0xFF0B0B1A);
   static const _card = Color(0xFF13132B);
   static const _accent = Color(0xFFE91E63);
   static const _gold = Color(0xFFF4BA4A);
   static const _surface = Color(0xFF1C1C3A);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMembership();
+  }
+
+  Future<void> _loadMembership() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _membershipValue = prefs.getString('membership') ?? '';
+      });
+      final token = await AuthService.getToken();
+      if (token != null && token.isNotEmpty) {
+        final membershipData = await ApiService().checkLoginUserMembership(token: token);
+        final expire = membershipData['membership_expire']?.toString();
+        if (expire != null) {
+          if (mounted) {
+            setState(() {
+              _membershipValue = expire;
+            });
+          }
+          await prefs.setString('membership', expire);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading membership: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -14312,6 +14348,21 @@ class _CelebrityPanelPageState extends ConsumerState<CelebrityPanelPage>
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final user = users[index];
+
+            if (BeatMembershipLock.isLocked(_membershipValue)) {
+              return BeatMembershipLockedCard(
+                topMargin: 0,
+                height: double.infinity,
+                onPurchase: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const UpgradePage(),
+                    ),
+                  );
+                },
+              );
+            }
 
             return _FlipCardWidget(
               user: user,

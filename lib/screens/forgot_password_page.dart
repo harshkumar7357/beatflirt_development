@@ -1936,8 +1936,11 @@ class ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final state = ref.watch(forgotPasswordProvider);
 
     return Scaffold(
-      body: Stack(
-        children: [
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
           Positioned.fill(
             child: Image.network(
               backgroundImage,
@@ -2023,6 +2026,7 @@ class ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           ),
         ],
       ),
+     ),
     );
   }
 

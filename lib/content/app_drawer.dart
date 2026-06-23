@@ -2032,7 +2032,8 @@ import '../core/services/auth_services.dart';
 import '../providers/drawer_providers.dart';
 import '../screens/drawer_pages.dart';
 import '../screens/login_page.dart';
-import '../screens/couple_profile_screen_view.dart';
+import '../screens/home_screen.dart';
+// import '../screens/couple_profile_screen_view.dart';
 // import 'package:beatflirt/my_profile_page.dart';
 
 
@@ -2104,8 +2105,15 @@ class AppDrawer extends ConsumerWidget {
                       context,
                       icon: FontAwesomeIcons.solidBell,
                       title: 'BeatFlirt Notification',
-                      onTap: () => _openDrawerPage(
-                          context, const BeatFlirtNotificationPage()),
+                      onTap: () {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        Navigator.pop(context); // Close drawer
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomePage()),
+                          (route) => false,
+                        );
+                      },
                     ),
                     _buildPillItem(
                       context,
@@ -2553,12 +2561,10 @@ class AppDrawer extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
               Navigator.pop(dialogContext);
-              Navigator.pop(context);
               await AuthService.logout();
-              if (!context.mounted) return;
-              Navigator.pushAndRemoveUntil(
-                context,
+              navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const LoginPage()),
                 (route) => false,
               );

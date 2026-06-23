@@ -1,3 +1,4 @@
+import 'package:beatflirt/providers/profile_provider.dart';
 import 'package:beatflirt/screens/drawer_pages/profile_tabs/my_profile_home_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -523,7 +524,7 @@ class ProfileDetailsSaver {
 
     final payload = _buildPayload(state);
     final headers = ApiService.buildAuthHeaders(token: token);
-    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    headers['Content-Type'] = 'application/json';
     headers['Accept'] = 'application/json';
 
     final body = {...payload, 'token': token, 'Authtoken': token};
@@ -532,7 +533,7 @@ class ProfileDetailsSaver {
       final response = await http.post(
         Uri.parse(url),
         headers: headers,
-        body: body,
+        body: jsonEncode(body),
       );
 
       debugPrint('PROFILE SAVE STATUS: ${response.statusCode}');
@@ -588,12 +589,12 @@ class ProfileDetailsSaver {
     return text;
   }
 
-  static Map<String, String> _buildPayload(ProfileEditState state) {
+  static Map<String, dynamic> _buildPayload(ProfileEditState state) {
     final p1 = state.partner1;
     final p2 = state.partner2;
     final isCouple = state.profileType.toLowerCase() == 'couple' || state.linkedPartner != null;
 
-    final payload = <String, String>{
+    final payload = <String, dynamic>{
       'text': state.aboutMe,
       'comment': state.lookingFor,
       'person1_name': state.person1Name,
@@ -610,11 +611,11 @@ class ProfileDetailsSaver {
       'person1_piercings': p1['piercings'] ?? '',
       'person1_smoking': p1['smoking'] ?? '',
       'person1_drinking': p1['drinking'] ?? '',
-      'person1_body_hair': jsonEncode([p1['bodyHair'] ?? '']),
+      'person1_body_hair': [p1['bodyHair'] ?? ''],
       'person1_looks_important': p1['looks'] ?? '',
       'person1_intelligence_importance': p1['intelligence'] ?? '',
       'person1_circumcised': p1['circumcised'] ?? '',
-      'person1_language_spoken': jsonEncode(state.partner1Languages),
+      'person1_language_spoken': state.partner1Languages,
     };
 
     if (isCouple) {
@@ -633,11 +634,11 @@ class ProfileDetailsSaver {
         'person2_piercings': p2['piercings'] ?? '',
         'person2_smoking': p2['smoking'] ?? '',
         'person2_drinking': p2['drinking'] ?? '',
-        'person2_body_hair': jsonEncode([p2['bodyHair'] ?? '']),
+        'person2_body_hair': [p2['bodyHair'] ?? ''],
         'person2_looks_important': p2['looks'] ?? '',
         'person2_intelligence_importance': p2['intelligence'] ?? '',
         'person2_circumcised': p2['circumcised'] ?? '',
-        'person2_language_spoken': jsonEncode(state.partner2Languages),
+        'person2_language_spoken': state.partner2Languages,
       });
     }
 
@@ -1392,26 +1393,36 @@ class MyProfileEditTab extends ConsumerWidget {
     final profileState = ref.watch(profileEditProvider);
     final notifier = ref.read(profileEditProvider.notifier);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double width = constraints.maxWidth;
-        final int columns = width >= 900 ? 3 : (width >= 560 ? 2 : 1);
-        final double optionWidth = (width - (columns - 1) * 10 - 20) / columns;
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(profileProvider.notifier).fetchProfile();
+      },
+      color: Colors.pink,
+      child: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double width = constraints.maxWidth;
+            final int columns = width >= 900 ? 3 : (width >= 560 ? 2 : 1);
+            final double optionWidth = (width - (columns - 1) * 10 - 20) / columns;
 
-        return Container(
-          width: double.infinity,
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.62,
-          ),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE8E0F2)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            return Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height * 0.62,
+              ),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE8E0F2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               // Loading indicator
               if (profileState.isLoading)
                 const Padding(
@@ -1507,6 +1518,9 @@ class MyProfileEditTab extends ConsumerWidget {
           ),
         );
       },
+        ),
+      ),
+     ),
     );
   }
 
@@ -1847,7 +1861,7 @@ class MyProfileEditTab extends ConsumerWidget {
             initialValue: data['height'] ?? '',
             readOnly: readOnly,
             onChanged: readOnly ? null : (value) => onFieldChanged('height', value),
-            keyboardType: TextInputType.text,
+             keyboardType: TextInputType.number,
             style: const TextStyle(fontSize: 12, color: Colors.black87),
             decoration: profileInputDecoration(hintText: "Ex. (5'7 OR 170)", readOnly: readOnly),
           ),

@@ -1,3 +1,6 @@
+
+
+
 import 'package:beatflirt/model/membership_model.dart';
 import 'package:beatflirt/providers/membership_provider.dart';
 import 'package:beatflirt/providers/payment_provider.dart';
@@ -206,6 +209,15 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
       return Scaffold(
         backgroundColor: bgColor,
         appBar: AppBar(
+          title: Text(
+            'Upgrade',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+            
+          ),
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
@@ -216,6 +228,8 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
             ),
             onPressed: () => Navigator.pop(context),
           ),
+          centerTitle:true,
+
         ),
         body: Center(
           child: Padding(
@@ -261,7 +275,23 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
     }
 
     final plans = membershipState.memberships;
-    final currentMembershipId = membershipState.userPlan?.membershipId;
+    final userPlan = membershipState.userPlan;
+    final currentMembershipId = userPlan?.membershipId;
+    final hasPurchasedPlan = userPlan != null &&
+        userPlan.hasActivePlan &&
+        currentMembershipId != null &&
+        currentMembershipId != '0' &&
+        currentMembershipId.isNotEmpty;
+
+    double activePlanPrice = 0.0;
+    if (hasPurchasedPlan) {
+      for (final p in plans) {
+        if (p.id == currentMembershipId) {
+          activePlanPrice = double.tryParse(p.headingTitlePrice) ?? 0.0;
+          break;
+        }
+      }
+    }
 
     final double titleSize =
         (screenWidth * 0.09).clamp(28.0, 56.0).toDouble();
@@ -368,6 +398,8 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
                       plan: plans[index],
                       index: index,
                       currentMembershipId: currentMembershipId,
+                      hasPurchasedPlan: hasPurchasedPlan,
+                      activePlanPrice: activePlanPrice,
                       paymentState: paymentState,
                     );
                   },
@@ -385,12 +417,14 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
     required MembershipModel plan,
     required int index,
     required String? currentMembershipId,
+    required bool hasPurchasedPlan,
+    required double activePlanPrice,
     required PaymentState paymentState,
   }) {
     final selectedIndex = ref.watch(selectedPlanProvider);
 
     final isSelected = selectedIndex == index;
-    final isCurrentPlan = currentMembershipId == plan.id;
+    final isCurrentPlan = hasPurchasedPlan && currentMembershipId == plan.id;
 
     final planName = plan.headingTitleName.toUpperCase();
 
@@ -399,6 +433,10 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
 
     final double priceValue =
         double.tryParse(plan.headingTitlePrice) ?? 0.0;
+
+    final showButton = !isCurrentPlan &&
+        (!hasPurchasedPlan ||
+            (hasPurchasedPlan && priceValue > activePlanPrice));
 
     final List<String> benefits = [];
 
@@ -492,14 +530,38 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    planName,
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black87,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        planName,
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black87,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      if (isCurrentPlan)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFA0522D), // Brownish/orange badge color
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Active',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
 
                   const SizedBox(height: 10),
@@ -542,46 +604,45 @@ class _UpgradePageState extends ConsumerState<UpgradePage> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: priceValue == 0 || isCurrentPlan
-                          ? null
-                          : () => _startPayment(plan, paymentState),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark
-                            ? Colors.white
-                            : const Color(0xFFE91E63),
-                        foregroundColor: isDark
-                            ? const Color(0xFF2E102E)
-                            : Colors.white,
-                        disabledBackgroundColor: isDark
-                            ? Colors.white.withOpacity(0.12)
-                            : Colors.grey.shade300,
-                        disabledForegroundColor:
-                            isDark ? Colors.white70 : Colors.white70,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: Text(
-                        isCurrentPlan ? 'CURRENT PLAN' : 'Select Plan',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          color: isCurrentPlan
+                  if (showButton) ...[
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton(
+                        onPressed: priceValue == 0
+                            ? null
+                            : () => _startPayment(plan, paymentState),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark
+                              ? Colors.white
+                              : const Color(0xFFE91E63),
+                          foregroundColor: isDark
                               ? const Color(0xFF2E102E)
-                              : null,
+                              : Colors.white,
+                          disabledBackgroundColor: isDark
+                              ? Colors.white.withOpacity(0.12)
+                              : Colors.grey.shade300,
+                          disabledForegroundColor:
+                              isDark ? Colors.white70 : Colors.white70,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text(
+                          'Select Plan',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
+                  ] else ...[
+                    const SizedBox(height: 20),
+                  ],
 
                   Expanded(
                     child: ListView.builder(

@@ -1137,8 +1137,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } else {
       // ❌ Failed → show error
       Get.snackbar(
-        "Login Failed",
-        "Please Try Again",
+        "Invalid Credential!",
+        "Check Your Username/Email and Password",
         // result.$1,
         duration: const Duration(seconds: 2),
         backgroundColor: Colors.red,
@@ -1156,8 +1156,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final notifier = ref.read(loginProvider.notifier);
 
     return Scaffold(
-      body: Stack(
-        children: [
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
           // Background image
           Positioned.fill(
             child: Image.network(
@@ -1243,6 +1246,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ],
       ),
+     ),
     );
   }
 

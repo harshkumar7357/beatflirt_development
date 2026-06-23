@@ -2845,8 +2845,11 @@ class _LikesPageState extends State<LikesPage> {
       children: [
         SvgPicture.network(
           _webAsset(iconPath),
-          width: 22,
-          height: 22,
+          // width: 22,
+          // height: 22,
+
+          width: 15,
+          height: 15,
           placeholderBuilder: (_) => const Icon(Icons.circle, color: Colors.white, size: 18),
         ),
         const SizedBox(height: 3),

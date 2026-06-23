@@ -35,7 +35,7 @@ class _VideoApi {
         'access-token': token,
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'id': mediaId}),
+      body: jsonEncode({'video_id': mediaId}),
     );
 
     if (response.statusCode != 200) {
@@ -566,19 +566,50 @@ class _MyProfileVideoTabState extends ConsumerState<MyProfileVideoTab> {
     final isCompact = width < 380;
     final title = state.showApproved ? 'Approved Videos' : 'Pending Approval';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _statusTabs(state, notifier),
-        const SizedBox(height: 12),
-        if (state.showApproved) _infoStrip(),
-        if (state.showApproved) const SizedBox(height: 16),
-        if (state.showApproved)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
+    return RefreshIndicator(
+      onRefresh: () => notifier.loadVideosFromApi(),
+      color: Colors.pink,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _statusTabs(state, notifier),
+            const SizedBox(height: 12),
+            if (state.showApproved) _infoStrip(),
+            if (state.showApproved) const SizedBox(height: 16),
+            if (state.showApproved)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: isCompact ? 24 : 28,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _addVideo,
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Add Video'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF220027),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
               Text(
                 title,
                 style: TextStyle(
@@ -586,61 +617,37 @@ class _MyProfileVideoTabState extends ConsumerState<MyProfileVideoTab> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              ElevatedButton.icon(
-                onPressed: _addVideo,
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Add Video'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF220027),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
+            const SizedBox(height: 14),
+            if (state.isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 24),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (list.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: Text(
+                    state.showApproved
+                        ? 'No approved videos.'
+                        : 'No pending videos.',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
                   ),
                 ),
+              )
+            else
+              Wrap(
+                spacing: 14,
+                runSpacing: 14,
+                children: list
+                    .map((item) => _videoCard(item, isCompact ? width - 64 : 240))
+                    .toList(),
               ),
-            ],
-          )
-        else
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: isCompact ? 24 : 28,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        const SizedBox(height: 14),
-        if (state.isLoading)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 24),
-              child: CircularProgressIndicator(),
-            ),
-          )
-        else if (list.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: Text(
-                state.showApproved
-                    ? 'No approved videos.'
-                    : 'No pending videos.',
-                style: TextStyle(color: Colors.grey[700], fontSize: 16),
-              ),
-            ),
-          )
-        else
-          Wrap(
-            spacing: 14,
-            runSpacing: 14,
-            children: list
-                .map((item) => _videoCard(item, isCompact ? width - 64 : 240))
-                .toList(),
-          ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 

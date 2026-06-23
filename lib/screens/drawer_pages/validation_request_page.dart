@@ -799,7 +799,9 @@ class _ValidationRequestPageState extends State<ValidationRequestPage> {
                     children: [
                       _smallButton('Accept', _maroon, () => _acceptDecline(user, '1')),
                       const SizedBox(width: 8),
-                      _smallButton('Decline', _orange, () => _acceptDecline(user, '2')),
+                      // _smallButton('Decline', _orange, () => _acceptDecline(user, '2')),
+                      _smallButton('Decline', Colors.transparent, () => _acceptDecline(user, '2')),
+
                     ],
                   ),
                 ],
@@ -834,7 +836,7 @@ class _ValidationRequestPageState extends State<ValidationRequestPage> {
       borderRadius: BorderRadius.circular(5),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5)),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5),border: Border.all(color: Colors.white, width: 1)),
         child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
       ),
     );
@@ -1004,10 +1006,10 @@ class _ValidationRequestPageState extends State<ValidationRequestPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Blastergate Team!', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+              const Text('Beat Flirt Team!', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               const Text(
-                '"You have not purchased a Blastergate membership plan. Buy membership"',
+                '"You have not purchased a Beat Flirt membership plan. Buy membership"',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 15),
               ),

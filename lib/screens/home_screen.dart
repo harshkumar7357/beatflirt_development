@@ -114,7 +114,6 @@
 //   }
 // }
 
-
 // lib/screens/home_screen.dart
 
 // import 'package:beatflirt/model/notification_model.dart';
@@ -126,7 +125,6 @@
 // import '../Api_services/api_service(new).dart';
 // import '../content/app_drawer.dart';
 // import '../core/services/auth_services.dart';
-
 
 // // ══════════════════════════════════════════════════════════════
 // // STATE
@@ -546,7 +544,6 @@
 //     );
 //   }
 // }
-
 
 // import 'package:beatflirt/model/notification_model.dart';
 // import 'package:flutter/material.dart';
@@ -1006,6 +1003,12 @@ import 'package:intl/intl.dart';
 import '../Api_services/api_service.dart';
 import '../content/app_drawer.dart';
 import '../core/services/auth_services.dart';
+import 'drawer_pages/validation_request_page.dart';
+import 'drawer_pages/friend_request_page.dart';
+import 'drawer_pages/likes_page.dart';
+import 'drawer_pages/viewed_me_page.dart';
+import '../providers/notification_provider.dart';
+import 'search_screen.dart';
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -1052,17 +1055,11 @@ class HomePageNotifier extends Notifier<HomePageState> {
     try {
       final token = await AuthService.getToken();
       if (token == null || token.trim().isEmpty) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: 'TOKEN_MISSING',
-        );
+        state = state.copyWith(isLoading: false, errorMessage: 'TOKEN_MISSING');
         return;
       }
       final notifications = await _api.getAllNotifications(token: token);
-      state = state.copyWith(
-        notifications: notifications,
-        isLoading: false,
-      );
+      state = state.copyWith(notifications: notifications, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -1083,10 +1080,7 @@ class HomePageNotifier extends Notifier<HomePageState> {
         return;
       }
       final notifications = await _api.getAllNotifications(token: token);
-      state = state.copyWith(
-        notifications: notifications,
-        isRefreshing: false,
-      );
+      state = state.copyWith(notifications: notifications, isRefreshing: false);
     } catch (e) {
       state = state.copyWith(
         isRefreshing: false,
@@ -1099,8 +1093,9 @@ class HomePageNotifier extends Notifier<HomePageState> {
 // ══════════════════════════════════════════════════════════════
 // PROVIDER
 // ══════════════════════════════════════════════════════════════
-final homePageProvider =
-    NotifierProvider<HomePageNotifier, HomePageState>(HomePageNotifier.new);
+final homePageProvider = NotifierProvider<HomePageNotifier, HomePageState>(
+  HomePageNotifier.new,
+);
 
 // ══════════════════════════════════════════════════════════════
 // WIDGET — HOME PAGE
@@ -1132,23 +1127,50 @@ class _HomePageState extends ConsumerState<HomePage> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         title: Text(
-          "Beat Flirt",
+          "BeatFlirt Notifications",
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 26,
-            shadows: [
-              const Shadow(blurRadius: 8, color: Colors.pink, offset: Offset(0, 0)),
-              const Shadow(blurRadius: 16, color: Colors.pink, offset: Offset(0, 0)),
-              Shadow(blurRadius: 24, color: Colors.pink.withValues(alpha: 0.7), offset: const Offset(0, 0)),
-              Shadow(blurRadius: 32, color: Colors.pink.withValues(alpha: 0.8), offset: const Offset(0, 0)),
-              Shadow(blurRadius: 40, color: Colors.pink.withValues(alpha: 0.8), offset: const Offset(0, 0)),
-              Shadow(blurRadius: 48, color: Colors.pink.withValues(alpha: 0.8), offset: const Offset(0, 0)),
-            ],
+            color: Colors.black,
+            fontSize: 22,
+            // shadows: [
+            //   const Shadow(blurRadius: 8, color: Colors.pink, offset: Offset(0, 0)),
+            //   const Shadow(blurRadius: 16, color: Colors.pink, offset: Offset(0, 0)),
+            //   Shadow(blurRadius: 24, color: Colors.pink.withValues(alpha: 0.7), offset: const Offset(0, 0)),
+            //   Shadow(blurRadius: 32, color: Colors.pink.withValues(alpha: 0.8), offset: const Offset(0, 0)),
+            //   Shadow(blurRadius: 40, color: Colors.pink.withValues(alpha: 0.8), offset: const Offset(0, 0)),
+            //   Shadow(blurRadius: 48, color: Colors.pink.withValues(alpha: 0.8), offset: const Offset(0, 0)),
+            // ],
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+            },
+            icon: const Icon(
+              Icons.search,
+              color: Colors.black,
+            ),
+          ),
+          Builder(
+            builder: (context) => IconButton(
+              onPressed: () {
+                Scaffold.of(context).openEndDrawer();
+              },
+              icon: const Icon(
+                Icons.notifications_active,
+                color: Colors.amber,
+              ),
+            ),
+          ),
+        ],
       ),
       drawer: const AppDrawer(),
-      backgroundColor: Colors.pink.shade900,
+      endDrawer: const NotificationEndDrawer(),
+      // backgroundColor: Colors.pink.shade900,
+      backgroundColor: Color(0xFF530827),
       body: SafeArea(
         child: Stack(
           children: [
@@ -1157,7 +1179,6 @@ class _HomePageState extends ConsumerState<HomePage> {
               const Center(
                 child: CircularProgressIndicator(color: Colors.white),
               )
-
             // ── Error / Token-missing state ─────────────
             else if (state.errorMessage != null && state.notifications.isEmpty)
               Center(
@@ -1214,7 +1235,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ),
                 ),
               )
-
             // ── Empty state ───────────────────────────────
             else if (state.notifications.isEmpty)
               const Center(
@@ -1223,7 +1243,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
               )
-
             // ── Notification list ─────────────────────────
             else
               RefreshIndicator(
@@ -1354,7 +1373,11 @@ class _NotificationCardState extends State<_NotificationCard> {
                 // ── Date + Time row ────────────────────────
                 Row(
                   children: [
-                    Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey.shade500),
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: Colors.grey.shade500,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(notification.created),
@@ -1364,7 +1387,11 @@ class _NotificationCardState extends State<_NotificationCard> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Icon(Icons.access_time_outlined, size: 14, color: Colors.grey.shade500),
+                    Icon(
+                      Icons.access_time_outlined,
+                      size: 14,
+                      color: Colors.grey.shade500,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       notification.notificationTime,
@@ -1392,7 +1419,11 @@ class _NotificationCardState extends State<_NotificationCard> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.schedule, size: 12, color: Colors.pink.shade400),
+                        Icon(
+                          Icons.schedule,
+                          size: 12,
+                          color: Colors.pink.shade400,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           notification.sendMsgTime,
@@ -1446,7 +1477,10 @@ class _NotificationCardState extends State<_NotificationCard> {
                         });
                       },
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
@@ -1661,3 +1695,219 @@ class _NotificationCardState extends State<_NotificationCard> {
 //     );
 //   }
 // }
+
+class NotificationEndDrawer extends ConsumerStatefulWidget {
+  const NotificationEndDrawer({super.key});
+
+  @override
+  ConsumerState<NotificationEndDrawer> createState() => _NotificationEndDrawerState();
+}
+
+class _NotificationEndDrawerState extends ConsumerState<NotificationEndDrawer> {
+  List<NotificationModel> _shortNotifications = [];
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadShortNotifications();
+  }
+
+  Future<void> _loadShortNotifications() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final token = await AuthService.getToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('User token not found');
+      }
+      final apiService = ApiService();
+      final data = await apiService.getShortNotifications(token: token);
+      if (!mounted) return;
+      setState(() {
+        _shortNotifications = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      width: MediaQuery.of(context).size.width * 0.85,
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          // Header matching style
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            color: const Color(0xFF560827), // Burgundy/maroon theme
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Notifications',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Content
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF560827)))
+                : _error != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                        ),
+                      )
+                    : _shortNotifications.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No notifications',
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: EdgeInsets.zero,
+                            itemCount: _shortNotifications.length,
+                            separatorBuilder: (context, index) => const Divider(
+                              height: 1,
+                              color: Color(0xFFEEEEEE),
+                            ),
+                            itemBuilder: (context, index) {
+                              final item = _shortNotifications[index];
+                              return InkWell(
+                                onTap: () {
+                                  // Close drawer
+                                  Navigator.of(context).pop();
+
+                                  // Mark as read in provider
+                                  if (item.id.isNotEmpty) {
+                                    ref.read(notificationProvider.notifier).markAsRead(item.id);
+                                  }
+
+                                  // Route to correct page
+                                  Widget? targetPage;
+                                  final typeLower = item.type.toLowerCase();
+                                  final titleLower = item.title.toLowerCase();
+                                  if (typeLower.contains('validation_request')) {
+                                    targetPage = const ValidationRequestPage();
+                                  } else if (typeLower.contains('friend_request')) {
+                                    targetPage = const FriendRequestsPage();
+                                  } else if (typeLower.contains('like')) {
+                                    targetPage = const LikesPage();
+                                  } else if (typeLower.contains('viewed_me') ||
+                                      typeLower.contains('viewed') ||
+                                      typeLower.contains('view') ||
+                                      titleLower.contains('viewed') ||
+                                      titleLower.contains('view')) {
+                                    targetPage = const ViewedMePage();
+                                  }
+
+                                  if (targetPage != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (_) => targetPage!),
+                                    );
+                                  }
+
+                                  // Remove from local list so it disappears from drawer list
+                                  setState(() {
+                                    _shortNotifications.removeWhere((n) => n.id == item.id);
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Avatar/Image on Left
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: item.image.isNotEmpty
+                                            ? Image.network(
+                                                item.image,
+                                                width: 36,
+                                                height: 36,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) =>
+                                                    _buildFallbackAvatar(),
+                                              )
+                                            : _buildFallbackAvatar(),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      // Title & Time on Right
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.title,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              item.sendMsgTime.isNotEmpty
+                                                  ? item.sendMsgTime
+                                                  : '${item.created} ${item.notificationTime}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackAvatar() {
+    return Container(
+      width: 36,
+      height: 36,
+      color: Colors.grey.shade200,
+      child: const Icon(Icons.person, color: Colors.grey, size: 20),
+    );
+  }
+}
